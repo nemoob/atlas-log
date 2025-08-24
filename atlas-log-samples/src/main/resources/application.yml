@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: atlas-log-samples
+
+
+# Atlas Log配置
+atlas:
+  log:
+    # 基础配置
+    enabled: true
+    default-level: INFO
+    date-format: "yyyy-MM-dd HH:mm:ss.SSS"
+    pretty-print: false
+    max-message-length: 2000
+    spel-enabled: true
+    condition-enabled: true
+    
+    # 启用的标签 - 只有这些标签的日志才会被记录
+    enabled-tags:
+      - "business"
+      - "security" 
+      - "api"
+      - "vip"
+      - "admin"
+      - "audit"
+      - "urgent"
+      # - "debug"  # 可以注释掉不需要的标签
+    
+    # 启用的日志组
+    enabled-groups:
+      - "default"
+      - "business"
+      - "security"
+      - "urgent"
+      # - "debug"
+    
+    # 排除某些方法的日志记录
+    exclusions:
+      - "*.toString"
+      - "*.hashCode"
+      - "*.equals"
+      - "*.getClass"
+    
+    # 链路追踪配置
+    trace-id:
+      enabled: true
+      header-name: "X-Trace-Id"
+      generator: "uuid"
+    
+    # 性能监控配置
+    performance:
+      enabled: true
+      slow-threshold: 1000  # 超过1秒的方法被认为是慢方法
+      log-slow-methods: true
+    
+    # 条件评估配置
+    condition:
+      cache-enabled: true
+      timeout-ms: 1000
+      fail-safe: true  # 表达式执行失败时仍然记录日志
+    
+    # 敏感数据脱敏配置
+    sensitive:
+      enabled: true
+      custom-fields:
+        - "bankCard"
+        - "idCard"
+        - "socialSecurityNumber"
+      mask-value: "***"
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    io.github.nemoob.atlas.log.samples: INFO
+    io.github.nemoob.atlas.log: INFO
+  
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /atlas-log-demo
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

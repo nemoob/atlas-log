@@ -1,0 +1,139 @@
+{
+  "groups": [
+    {
+      "name": "atlas.log",
+      "type": "io.github.nemoob.atlas.log.config.LogConfigProperties",
+      "sourceType": "io.github.nemoob.atlas.log.config.LogConfigProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "atlas.log.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用Atlas Log组件",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.default-level",
+      "type": "java.lang.String",
+      "description": "默认日志级别",
+      "defaultValue": "INFO"
+    },
+    {
+      "name": "atlas.log.date-format",
+      "type": "java.lang.String",
+      "description": "日期格式",
+      "defaultValue": "yyyy-MM-dd HH:mm:ss.SSS"
+    },
+    {
+      "name": "atlas.log.pretty-print",
+      "type": "java.lang.Boolean",
+      "description": "是否美化JSON输出",
+      "defaultValue": false
+    },
+    {
+      "name": "atlas.log.max-message-length",
+      "type": "java.lang.Integer",
+      "description": "最大消息长度",
+      "defaultValue": 2000
+    },
+    {
+      "name": "atlas.log.spel-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用SpEL表达式",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.condition-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用条件评估",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.enabled-tags",
+      "type": "java.util.List<java.lang.String>",
+      "description": "启用的日志标签列表"
+    },
+    {
+      "name": "atlas.log.enabled-groups",
+      "type": "java.util.List<java.lang.String>",
+      "description": "启用的日志组列表"
+    },
+    {
+      "name": "atlas.log.exclusions",
+      "type": "java.util.List<java.lang.String>",
+      "description": "排除的方法模式列表"
+    },
+    {
+      "name": "atlas.log.trace-id.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用链路追踪",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.trace-id.header-name",
+      "type": "java.lang.String",
+      "description": "TraceId的HTTP头名称",
+      "defaultValue": "X-Trace-Id"
+    },
+    {
+      "name": "atlas.log.trace-id.generator",
+      "type": "java.lang.String",
+      "description": "TraceId生成器类型",
+      "defaultValue": "uuid"
+    },
+    {
+      "name": "atlas.log.performance.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用性能监控",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.performance.slow-threshold",
+      "type": "java.lang.Long",
+      "description": "慢方法阈值（毫秒）",
+      "defaultValue": 1000
+    },
+    {
+      "name": "atlas.log.performance.log-slow-methods",
+      "type": "java.lang.Boolean",
+      "description": "是否记录慢方法日志",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.condition.cache-enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用表达式缓存",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.condition.timeout-ms",
+      "type": "java.lang.Long",
+      "description": "表达式执行超时时间（毫秒）",
+      "defaultValue": 1000
+    },
+    {
+      "name": "atlas.log.condition.fail-safe",
+      "type": "java.lang.Boolean",
+      "description": "表达式执行失败时是否仍然记录日志",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.sensitive.enabled",
+      "type": "java.lang.Boolean",
+      "description": "是否启用敏感数据脱敏",
+      "defaultValue": true
+    },
+    {
+      "name": "atlas.log.sensitive.custom-fields",
+      "type": "java.util.List<java.lang.String>",
+      "description": "自定义敏感字段列表"
+    },
+    {
+      "name": "atlas.log.sensitive.mask-value",
+      "type": "java.lang.String",
+      "description": "脱敏标记",
+      "defaultValue": "***"
+    }
+  ]
+}
