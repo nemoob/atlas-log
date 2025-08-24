@@ -23,7 +23,7 @@ Atlas Log 是一个为 Spring Boot 应用设计的轻量级、高性能的日志
 <dependency>
     <groupId>io.github.nemoob</groupId>
     <artifactId>atlas-log-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.1</version>
 </dependency>
 ```
 
