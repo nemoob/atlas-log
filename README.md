@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nemoob/atlas-log-spring-boot-starter.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.nemoob/atlas-log-spring-boot-starter)
+[![GitHub stars](https://img.shields.io/github/stars/nemoob/atlas-log.svg?style=social&label=Star)](https://github.com/nemoob/atlas-log)
 
 Atlas Log 是一个为 Spring Boot 应用设计的轻量级、高性能的日志框架。通过简单的 `@Log` 注解，即可实现方法调用的自动日志记录，支持参数序列化、返回值记录、执行时间统计、异常处理等功能。
 
@@ -202,3 +203,7 @@ public void adminOperation(String operation) { }
 - ⚙️ [配置参考](docs/CONFIGURATION.md) - 完整的配置选项说明
 - 🔧 [扩展指南](docs/EXTENSION_GUIDE.md) - 自定义序列化器等扩展功能
 - ❓ [故障排除](docs/TROUBLESHOOTING.md) - 常见问题和解决方案
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nemoob/atlas-log&type=Date)](https://star-history.com/#nemoob/atlas-log&Date)
