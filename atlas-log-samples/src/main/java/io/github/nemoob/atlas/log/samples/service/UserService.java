@@ -27,7 +27,7 @@ public class UserService {
     /**
      * 根据ID查询用户 - 基本日志功能
      */
-    @Log("查询用户信息: 用户ID= #{args[0]} ，查询之后的结果是：#{result}")
+    @Log(value = "查询用户信息: 用户ID= #{args[0]} ，查询之后的结果是：#{result.username}", logResult = false, logArgs = false)
     public User getUserById(Long userId) {
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("用户ID不能为空或小于等于0");
@@ -59,7 +59,7 @@ public class UserService {
         User user = getUserById(userId);
         if ("vip".equals(user.getUserType())) {
             // VIP用户额外处理
-            log.info("处理VIP用户特殊逻辑: {}", userId);
+            log.info("Processing VIP user special logic: {}", userId);
         }
         return user;
     }
@@ -114,7 +114,7 @@ public class UserService {
             throw new RuntimeException("用户不存在");
         }
         
-        log.info("用户状态更新成功: userId={}, status={}", userId, status);
+        log.info("User status updated successfully: userId={}, status={}", userId, status);
     }
     
     /**
@@ -127,7 +127,7 @@ public class UserService {
         level = LogLevel.WARN
     )
     public void adminOperation(User user, String operation) {
-        log.info("执行管理员操作: user={}, operation={}", user.getUid(), operation);
+        log.info("Executing admin operation: user={}, operation={}", user.getUid(), operation);
     }
     
     /**
@@ -146,7 +146,7 @@ public class UserService {
         
         // 模拟批量删除
         int deletedCount = userIds.size();
-        log.info("批量删除用户: {}", userIds);
+        log.info("Batch deleting users: {}", userIds);
         return deletedCount;
     }
     

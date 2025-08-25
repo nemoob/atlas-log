@@ -101,7 +101,7 @@ public class SensitiveDataMasker {
         try {
             return doMask(obj);
         } catch (Exception e) {
-            log.warn("敏感数据脱敏失败: {}", obj.getClass().getSimpleName(), e);
+            log.warn("Sensitive data masking failed: {}", obj.getClass().getSimpleName(), e);
             return obj; // 脱敏失败时返回原对象
         }
     }
@@ -212,7 +212,7 @@ public class SensitiveDataMasker {
             
             return result;
         } catch (Exception e) {
-            log.debug("无法脱敏对象: {}", clazz.getSimpleName(), e);
+            log.debug("Cannot mask object: {}", clazz.getSimpleName(), e);
             return obj;
         }
     }

@@ -36,7 +36,7 @@ public class PureSpelProcessor implements ExpressionProcessor {
         
         // 预先验证LogContext状态
         if (logContext == null) {
-            log.warn("PureSpelProcessor收到null LogContext，表达式: {}", expression);
+            log.warn("PureSpelProcessor received null LogContext, expression: {}", expression);
             return failSafe ? "[LogContext为null]" : expression;
         }
         
@@ -101,7 +101,7 @@ public class PureSpelProcessor implements ExpressionProcessor {
             processed = "#" + processed;
         }
         
-        log.debug("表达式语法处理: {} -> {}", expression, processed);
+        log.debug("Expression syntax processing: {} -> {}", expression, processed);
         return processed;
     }
     
@@ -119,11 +119,11 @@ public class PureSpelProcessor implements ExpressionProcessor {
                 logContext != null && logContext.getArgs() != null ? "non-null" : "null");
             
             if (args == null && logContext != null && logContext.getArgs() != null) {
-                log.warn("EvaluationContext中args为null但LogContext.args非null，重新设置");
+                log.warn("args is null in EvaluationContext but LogContext.args is not null, resetting");
                 ((StandardEvaluationContext) context).setVariable("args", logContext.getArgs());
             }
         } catch (Exception e) {
-            log.debug("验证EvaluationContext状态时发生异常", e);
+            log.debug("Exception occurred while validating EvaluationContext state", e);
         }
         
         return context;

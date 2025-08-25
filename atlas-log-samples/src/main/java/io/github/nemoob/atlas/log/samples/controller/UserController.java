@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * 用户控制器
@@ -30,6 +34,8 @@ import java.util.List;
 public class UserController {
     
     private final UserService userService;
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     
     /**
      * 获取用户信息
@@ -38,11 +44,13 @@ public class UserController {
     @Log(
         value = "Get_user_information",
         tags = {"api", "user", "query"},
-        logArgs = true,
-        logResult = true
+        logArgs = false,
+        logResult = false
     )
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public User getUserById(@PathVariable Long id) throws Exception{
+        Future<User> future = executorService.submit(() -> userService.getUserById(id));
+//        Callable<User> runnable = () -> userService.getUserById(id);
+        return future.get();
     }
     
     /**

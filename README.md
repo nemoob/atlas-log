@@ -24,7 +24,7 @@ Atlas Log 是一个为 Spring Boot 应用设计的轻量级、高性能的日志
 <dependency>
     <groupId>io.github.nemoob</groupId>
     <artifactId>atlas-log-spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>${last.version}</version>
 </dependency>
 ```
 
@@ -195,6 +195,22 @@ public String complexMethod(String input) {
 )
 public void adminOperation(String operation) { }
 ```
+
+### TraceId 链路追踪效果
+
+框架自动为每个请求生成唯一的 TraceId，并在整个调用链路中保持一致，包括跨线程的异步操作：
+
+```
+23:09:33.585 [pool-1-thread-2] INFO  UserService - TraceId: f92a9a3d11b147f8b140969545d4f35e | ExecutionTime: 0ms | 查询用户信息: 用户ID= 1 ，查询之后的结果是：用户1
+23:09:33.585 [http-nio-8080-exec-2] INFO  UserController - TraceId: f92a9a3d11b147f8b140969545d4f35e | Tags: [api, user, query] | ExecutionTime: 0ms | Get_user_information
+23:09:33.586 [http-nio-8080-exec-2] INFO  LoggingFilter - TraceId: f92a9a3d11b147f8b140969545d4f35e | Method: GET | URI: /atlas-log-demo/api/users/1 | HTTP请求完成 | Status: 200 | ExecutionTime: 2ms
+```
+
+**关键特性：**
+- ✅ **TraceId 一致性** - 同一请求的所有日志使用相同的 TraceId
+- ✅ **跨线程传递** - 支持线程池和异步操作的 TraceId 传递
+- ✅ **完整链路** - 从 HTTP 请求到业务方法的完整追踪
+- ✅ **性能统计** - 自动记录每个环节的执行时间
 
 ## 文档导航
 

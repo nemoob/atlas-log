@@ -67,7 +67,12 @@ public class LogAspect {
         }
         
         long startTime = System.currentTimeMillis();
-        String traceId = TraceIdHolder.getTraceId();
+        // AOP 只获取 Filter 设置的 TraceId，不生成新的
+        String traceId = TraceIdHolder.getTraceIdIfPresent();
+        if (traceId == null) {
+            log.warn("TraceId is null in AOP, Filter may not be working properly, method: {}", method.getName());
+            traceId = "MISSING-TRACE-ID";
+        }
         Object result = null;
         Throwable exception = null;
         
@@ -122,7 +127,7 @@ public class LogAspect {
             logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext));
             
         } catch (Exception e) {
-            log.warn("记录进入日志失败: {}", method.getName(), e);
+            log.warn("Failed to record enter log: {}", method.getName(), e);
         }
     }
     
@@ -144,7 +149,7 @@ public class LogAspect {
             logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext));
             
         } catch (Exception e) {
-            log.warn("记录退出日志失败: {}", method.getName(), e);
+            log.warn("Failed to record exit log: {}", method.getName(), e);
         }
     }
     
@@ -194,7 +199,7 @@ public class LogAspect {
             }
             
         } catch (Exception e) {
-            log.warn("记录异常日志失败: {}", method.getName(), e);
+            log.warn("Failed to record exception log: {}", method.getName(), e);
         }
     }
     
@@ -208,7 +213,7 @@ public class LogAspect {
             try {
                 return spelExpressionEvaluator.evaluateCondition(logAnnotation.condition(), logContext);
             } catch (Exception e) {
-                log.warn("条件表达式评估失败，默认记录日志: {}", logAnnotation.condition(), e);
+                log.warn("Condition expression evaluation failed, logging by default: {}", logAnnotation.condition(), e);
                 return true;
             }
         }
@@ -222,12 +227,12 @@ public class LogAspect {
     private String buildLogMessage(Log logAnnotation, LogContext logContext, boolean isException) {
         // 在调用SpEL求值前验证LogContext状态
         if (logContext == null) {
-            log.warn("buildLogMessage收到null LogContext");
+            log.warn("buildLogMessage received null LogContext");
             return "[LogContext为null]";
         }
         
         if (logContext.getArgs() == null) {
-            log.warn("buildLogMessage中LogContext.args为null，method: {}", logContext.getMethodName());
+            log.warn("LogContext.args is null in buildLogMessage, method: {}", logContext.getMethodName());
         }
         
         if (isException && !logAnnotation.exceptionMessage().isEmpty()) {
@@ -424,7 +429,8 @@ public class LogAspect {
      */
     private void logWithLevel(Logger logger, io.github.nemoob.atlas.log.annotation.LogLevel level, 
                              String message, String details) {
-        String fullMessage = String.format("%s | %s", message, details);
+        // 统一格式：details 包含 TraceId 和条件信息在前，message 是用户具体内容在后
+        String fullMessage = String.format("%s | %s", details, message);
         
         switch (level) {
             case TRACE:
@@ -450,7 +456,8 @@ public class LogAspect {
      */
     private void logWithLevel(Logger logger, io.github.nemoob.atlas.log.annotation.LogLevel level, 
                              String message, String details, Throwable exception) {
-        String fullMessage = String.format("%s | %s", message, details);
+        // 统一格式：details 包含 TraceId 和条件信息在前，message 是用户具体内容在后
+        String fullMessage = String.format("%s | %s", details, message);
         
         switch (level) {
             case TRACE:

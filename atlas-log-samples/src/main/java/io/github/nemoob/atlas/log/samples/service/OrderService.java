@@ -66,7 +66,7 @@ public class OrderService {
              .setCreateTime(LocalDateTime.now())
              .setUpdateTime(LocalDateTime.now());
         
-        log.info("订单创建成功: {}", orderNo);
+        log.info("Order created successfully: {}", orderNo);
         return order;
     }
     
@@ -106,7 +106,7 @@ public class OrderService {
             throw new RuntimeException("支付网关异常");
         }
         
-        log.info("订单支付成功: {}", orderNo);
+        log.info("Order payment successful: {}", orderNo);
         return true;
     }
     
@@ -120,7 +120,7 @@ public class OrderService {
         level = LogLevel.WARN
     )
     public void cancelOrder(String orderNo) {
-        log.info("订单已取消: {}", orderNo);
+        log.info("Order cancelled: {}", orderNo);
     }
     
     /**
@@ -157,7 +157,7 @@ public class OrderService {
             Thread.currentThread().interrupt();
         }
         
-        log.info("订单发货成功: {}", orderNo);
+        log.info("Order shipped successfully: {}", orderNo);
     }
     
     /**
@@ -174,7 +174,7 @@ public class OrderService {
     public Order processVipOrder(Order order) {
         // VIP订单特殊处理逻辑
         order.setStatus("vip_processing");
-        log.info("VIP订单优先处理: {}", order.getOrderNo());
+        log.info("VIP order priority processing: {}", order.getOrderNo());
         return order;
     }
     
@@ -196,10 +196,10 @@ public class OrderService {
         for (String orderNo : orderNos) {
             try {
                 // 模拟处理单个订单
-                log.debug("处理订单: {}", orderNo);
+                log.debug("Processing order: {}", orderNo);
                 processed++;
             } catch (Exception e) {
-                log.warn("处理订单失败: {}", orderNo, e);
+                log.warn("Failed to process order: {}", orderNo, e);
             }
         }
         

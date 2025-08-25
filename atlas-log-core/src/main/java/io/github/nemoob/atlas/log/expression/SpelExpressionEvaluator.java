@@ -112,13 +112,13 @@ public class SpelExpressionEvaluator {
             validateLogContextState(logContext, expressionString);
             
             String result = processor.processExpression(expressionString, logContext);
-            log.debug("表达式处理结果: {} -> {}", expressionString, result);
+            log.debug("Expression processing result: {} -> {}", expressionString, result);
             
             return result;
             
         } catch (Exception e) {
             String errorMsg = "SpEL表达式评估失败: " + expressionString;
-            log.warn(errorMsg + ", LogContext状态: " + describeLogContextState(logContext), e);
+            log.warn(errorMsg + ", LogContext state: " + describeLogContextState(logContext), e);
             
             if (failSafe) {
                 return "[" + errorMsg + "]";
@@ -232,7 +232,7 @@ public class SpelExpressionEvaluator {
                 try {
                     return applicationContext.getBean(beanName);
                 } catch (Exception e) {
-                    log.debug("获取Bean失败: {}", beanName, e);
+                    log.debug("Failed to get bean: {}", beanName, e);
                     return null;
                 }
             });
@@ -270,7 +270,7 @@ public class SpelExpressionEvaluator {
             }
         } else {
             // 当logContext为null时，提供默认值
-            log.warn("LogContext为null，使用默认值创建EvaluationContext");
+            log.warn("LogContext is null, creating EvaluationContext with default values");
             context.setVariable("args", new Object[0]);
             context.setVariable("result", null);
             context.setVariable("exception", null);
@@ -297,7 +297,7 @@ public class SpelExpressionEvaluator {
         long duration = System.currentTimeMillis() - startTime;
         
         if (duration > timeoutMs) {
-            log.warn("SpEL表达式执行超时: {}ms > {}ms", duration, timeoutMs);
+            log.warn("SpEL expression execution timeout: {}ms > {}ms", duration, timeoutMs);
         }
         
         return result;
@@ -338,7 +338,7 @@ public class SpelExpressionEvaluator {
      */
     private void validateLogContextState(LogContext logContext, String expression) {
         if (logContext == null) {
-            log.warn("LogContext为null，表达式: {}", expression);
+            log.warn("LogContext is null, expression: {}", expression);
             return;
         }
         

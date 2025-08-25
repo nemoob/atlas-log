@@ -1,6 +1,7 @@
 package io.github.nemoob.atlas.log.config;
 
 import io.github.nemoob.atlas.log.aspect.LogAspect;
+import io.github.nemoob.atlas.log.async.TraceIdTaskDecorator;
 import io.github.nemoob.atlas.log.expression.SpelExpressionEvaluator;
 import io.github.nemoob.atlas.log.serializer.JsonArgumentSerializer;
 import io.github.nemoob.atlas.log.serializer.SensitiveDataMasker;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
+import org.springframework.core.task.TaskDecorator;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -48,11 +50,11 @@ public class LogAutoConfiguration {
             // 尝试获取合并后的配置
             LogConfigProperties mergedConfig = applicationContext.getBean(
                 "atlasLogMergedConfig", LogConfigProperties.class);
-            log.debug("使用合并后的注解配置");
+            log.debug("Using merged annotation configuration");
             return mergedConfig;
         } catch (Exception e) {
             // 如果没有合并配置，使用默认的属性配置
-            log.debug("使用默认属性文件配置");
+            log.debug("Using default properties configuration");
             return defaultConfig;
         }
     }
@@ -75,7 +77,7 @@ public class LogAutoConfiguration {
             }
         }
         
-        log.info("配置敏感数据脱敏器完成，启用状态: {}", effectiveConfig.getSensitive().isEnabled());
+        log.info("Sensitive data masker configured, enabled: {}", effectiveConfig.getSensitive().isEnabled());
         return masker;
     }
     
@@ -130,7 +132,7 @@ public class LogAutoConfiguration {
                 conditionConfig.isFailSafe()
         );
         
-        log.info("配置SpEL表达式评估器完成，缓存启用: {}, 超时时间: {}ms", 
+        log.info("SpEL expression evaluator configured successfully, cache enabled: {}, timeout: {}ms", 
                 conditionConfig.isCacheEnabled(), conditionConfig.getTimeoutMs());
         return evaluator;
     }
@@ -143,8 +145,20 @@ public class LogAutoConfiguration {
     @ConditionalOnClass(name = "org.aspectj.lang.annotation.Aspect")
     public LogAspect logAspect(SpelExpressionEvaluator spelExpressionEvaluator,
                                JsonArgumentSerializer argumentSerializer) {
-        log.info("配置Atlas Log切面完成");
+        log.info("Atlas Log aspect configured successfully");
         return new LogAspect(spelExpressionEvaluator, argumentSerializer);
+    }
+    
+    /**
+     * 配置 TraceId 任务装饰器
+     * 用于异步执行时传递 TraceId
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "org.springframework.core.task.TaskDecorator")
+    public TaskDecorator traceIdTaskDecorator() {
+        log.info("Atlas Log TraceId task decorator configured successfully");
+        return new TraceIdTaskDecorator();
     }
     
     /**
@@ -185,10 +199,10 @@ public class LogAutoConfiguration {
             FilterRegistrationBean<LoggingFilter> registration = new FilterRegistrationBean<>();
             registration.setFilter(new LoggingFilter(effectiveConfig));
             registration.addUrlPatterns("/*");
-            registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
+            registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
             registration.setName("atlasLoggingFilter");
             
-            log.info("配置Atlas Log过滤器完成");
+            log.info("Atlas Log filter configured successfully");
             return registration;
         }
         
@@ -202,8 +216,8 @@ public class LogAutoConfiguration {
             if (effectiveConfig.getTraceId().isEnabled()) {
                 registry.addInterceptor(traceIdInterceptor())
                         .addPathPatterns("/**")
-                        .order(Ordered.HIGHEST_PRECEDENCE);
-                log.info("配置TraceId拦截器完成，Header名称: {}", effectiveConfig.getTraceId().getHeaderName());
+                        .order(Ordered.HIGHEST_PRECEDENCE + 1);
+                log.info("TraceId interceptor configured successfully, header name: {}", effectiveConfig.getTraceId().getHeaderName());
             }
         }
         
@@ -229,7 +243,7 @@ public class LogAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean
         public SpelExpressionEvaluator spelExpressionEvaluator() {
-            log.warn("SpEL表达式已禁用，使用空实现");
+            log.warn("SpEL expression is disabled, using empty implementation");
             return new SpelExpressionEvaluator(null, false, 0, true);
         }
     }

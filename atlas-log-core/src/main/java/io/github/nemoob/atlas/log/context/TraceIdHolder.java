@@ -4,14 +4,14 @@ import java.util.UUID;
 
 /**
  * 链路追踪ID持有者
- * 使用ThreadLocal在当前线程中存储和传递TraceId
+ * 使用InheritableThreadLocal在当前线程及其子线程中存储和传递TraceId
  * 
  * @author Atlas Team
  * @since 1.0.0
  */
 public class TraceIdHolder {
     
-    private static final ThreadLocal<String> TRACE_ID_HOLDER = new ThreadLocal<>();
+    private static final InheritableThreadLocal<String> TRACE_ID_HOLDER = new InheritableThreadLocal<>();
     
     /**
      * 设置当前线程的TraceId

@@ -47,7 +47,7 @@ public class JsonArgumentSerializer implements ArgumentSerializer {
             String result = objectMapper.writeValueAsString(filteredArgs);
             return truncateIfNecessary(result, annotation.maxArgLength());
         } catch (JsonProcessingException e) {
-            log.warn("参数序列化失败", e);
+            log.warn("Parameter serialization failed", e);
             throw new SerializationException(args.getClass(), "JSON序列化失败", e);
         }
     }
@@ -63,7 +63,7 @@ public class JsonArgumentSerializer implements ArgumentSerializer {
             String serialized = objectMapper.writeValueAsString(maskedResult);
             return truncateIfNecessary(serialized, annotation.maxResultLength());
         } catch (JsonProcessingException e) {
-            log.warn("返回值序列化失败: {}", result.getClass().getSimpleName(), e);
+            log.warn("Return value serialization failed: {}", result.getClass().getSimpleName(), e);
             throw new SerializationException(result.getClass(), "JSON序列化失败", e);
         }
     }
@@ -79,7 +79,7 @@ public class JsonArgumentSerializer implements ArgumentSerializer {
             String result = objectMapper.writeValueAsString(maskedObj);
             return truncateIfNecessary(result, maxLength);
         } catch (JsonProcessingException e) {
-            log.warn("对象序列化失败: {}", obj.getClass().getSimpleName(), e);
+            log.warn("Object serialization failed: {}", obj.getClass().getSimpleName(), e);
             return "[序列化失败: " + obj.getClass().getSimpleName() + "]";
         }
     }
@@ -168,7 +168,7 @@ public class JsonArgumentSerializer implements ArgumentSerializer {
             String result = objectMapper.writeValueAsString(filteredArgs);
             return truncateIfNecessary(result, annotation.maxArgLength());
         } catch (JsonProcessingException e) {
-            log.warn("参数序列化失败", e);
+            log.warn("Parameter serialization failed", e);
             throw new SerializationException(args.getClass(), "JSON序列化失败", e);
         }
     }

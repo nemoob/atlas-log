@@ -146,7 +146,7 @@ public class ReflectionUtils {
             field.setAccessible(true);
             return field.get(obj);
         } catch (Exception e) {
-            log.debug("获取字段值失败: {}.{}", obj.getClass().getSimpleName(), field.getName(), e);
+            log.debug("Failed to get field value: {}.{}", obj.getClass().getSimpleName(), field.getName(), e);
             return null;
         }
     }
@@ -165,7 +165,7 @@ public class ReflectionUtils {
             field.set(obj, value);
             return true;
         } catch (Exception e) {
-            log.debug("设置字段值失败: {}.{}", obj.getClass().getSimpleName(), field.getName(), e);
+            log.debug("Failed to set field value: {}.{}", obj.getClass().getSimpleName(), field.getName(), e);
             return false;
         }
     }

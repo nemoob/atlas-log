@@ -33,7 +33,7 @@ public class LoggingFilter implements Filter {
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.info("Atlas Log过滤器初始化完成");
+        log.info("Atlas Log filter initialized successfully");
     }
     
     @Override
@@ -48,8 +48,25 @@ public class LoggingFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         
+        // LoggingFilter 作为请求的入口，直接管理 TraceId
+        String traceId = TraceIdHolder.getTraceIdIfPresent();
+        if (traceId == null) {
+            // 从请求头获取 TraceId
+            traceId = httpRequest.getHeader("X-Trace-Id");
+            if (traceId == null || traceId.trim().isEmpty()) {
+                // 如果请求头中没有，生成新的 TraceId
+                traceId = TraceIdHolder.generateTraceId();
+                log.debug("LoggingFilter generated new TraceId: {}", traceId);
+            } else {
+                log.debug("LoggingFilter obtained TraceId from request header: {}", traceId);
+            }
+            // 设置到当前线程
+            TraceIdHolder.setTraceId(traceId);
+            // 设置到响应头
+            httpResponse.setHeader("X-Trace-Id", traceId);
+        }
+        log.debug("LoggingFilter started - TraceId: {}", traceId);
         long startTime = System.currentTimeMillis();
-        String traceId = TraceIdHolder.getTraceId();
         
         try {
             // 记录请求开始日志
@@ -59,7 +76,9 @@ public class LoggingFilter implements Filter {
             chain.doFilter(request, response);
             
         } finally {
-            // 记录请求结束日志
+            // 使用保存的 traceId，确保开始和结束日志的 TraceId 一致
+            String currentTraceId = TraceIdHolder.getTraceIdIfPresent();
+            log.debug("LoggingFilter finished - saved TraceId: {}, current TraceId: {}", traceId, currentTraceId);
             long executionTime = System.currentTimeMillis() - startTime;
             logRequestEnd(httpRequest, httpResponse, executionTime, traceId);
         }
@@ -76,10 +95,10 @@ public class LoggingFilter implements Filter {
             String remoteAddr = getClientIpAddress(request);
             
             StringBuilder logMsg = new StringBuilder();
-            logMsg.append("HTTP请求开始 | ");
             logMsg.append("TraceId: ").append(traceId).append(" | ");
             logMsg.append("Method: ").append(method).append(" | ");
             logMsg.append("URI: ").append(uri);
+            logMsg.append(" | HTTP请求开始");
             
             if (StringUtils.hasText(queryString)) {
                 logMsg.append("?").append(queryString);
@@ -102,10 +121,10 @@ public class LoggingFilter implements Filter {
         int status = response.getStatus();
         
         StringBuilder logMsg = new StringBuilder();
-        logMsg.append("HTTP请求完成 | ");
         logMsg.append("TraceId: ").append(traceId).append(" | ");
         logMsg.append("Method: ").append(method).append(" | ");
         logMsg.append("URI: ").append(uri).append(" | ");
+        logMsg.append("HTTP请求完成 | ");
         logMsg.append("Status: ").append(status).append(" | ");
         logMsg.append("ExecutionTime: ").append(executionTime).append("ms");
         
@@ -140,6 +159,6 @@ public class LoggingFilter implements Filter {
     
     @Override
     public void destroy() {
-        log.info("Atlas Log过滤器销毁完成");
+        log.info("Atlas Log filter destroyed successfully");
     }
 }

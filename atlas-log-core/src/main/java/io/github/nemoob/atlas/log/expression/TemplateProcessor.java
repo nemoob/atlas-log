@@ -67,7 +67,7 @@ public class TemplateProcessor implements ExpressionProcessor {
         
         // 预先验证LogContext状态
         if (logContext == null) {
-            log.warn("TemplateProcessor收到null LogContext，表达式: {}", expression);
+            log.warn("TemplateProcessor received null LogContext, expression: {}", expression);
             return failSafe ? "[LogContext为null]" : expression;
         }
         
@@ -135,7 +135,7 @@ public class TemplateProcessor implements ExpressionProcessor {
             int endIndex = matcher.end();
             
             placeholders.add(new SpelPlaceholder(fullPlaceholder, expression, startIndex, endIndex));
-            log.debug("提取SpEL占位符: {} -> {}", fullPlaceholder, expression);
+            log.debug("Extracted SpEL placeholder: {} -> {}", fullPlaceholder, expression);
         }
         
         return placeholders;
@@ -163,13 +163,13 @@ public class TemplateProcessor implements ExpressionProcessor {
                 // 替换占位符
                 result.replace(placeholder.startIndex, placeholder.endIndex, valueStr);
                 
-                log.debug("替换占位符: {} -> {}", placeholder.fullPlaceholder, valueStr);
+                log.debug("Replaced placeholder: {} -> {}", placeholder.fullPlaceholder, valueStr);
                 
             } catch (Exception e) {
                 String errorValue = failSafe ? "[表达式错误: " + placeholder.expression + "]" : placeholder.fullPlaceholder;
                 result.replace(placeholder.startIndex, placeholder.endIndex, errorValue);
                 
-                log.warn("SpEL占位符求值失败: {}", placeholder.fullPlaceholder, e);
+                log.warn("SpEL placeholder evaluation failed: {}", placeholder.fullPlaceholder, e);
             }
         }
         
@@ -190,11 +190,11 @@ public class TemplateProcessor implements ExpressionProcessor {
                 logContext != null && logContext.getArgs() != null ? "non-null" : "null");
             
             if (args == null && logContext != null && logContext.getArgs() != null) {
-                log.warn("EvaluationContext中args为null但LogContext.args非null，重新设置");
+                log.warn("args is null in EvaluationContext but LogContext.args is not null, resetting");
                 ((StandardEvaluationContext) context).setVariable("args", logContext.getArgs());
             }
         } catch (Exception e) {
-            log.debug("验证EvaluationContext状态时发生异常", e);
+            log.debug("Exception occurred while validating EvaluationContext state", e);
         }
         
         return context;
@@ -220,7 +220,7 @@ public class TemplateProcessor implements ExpressionProcessor {
             processed = "#" + processed;
         }
         
-        log.debug("表达式语法处理: {} -> {}", expression, processed);
+        log.debug("Expression syntax processing: {} -> {}", expression, processed);
         return processed;
     }
 }
