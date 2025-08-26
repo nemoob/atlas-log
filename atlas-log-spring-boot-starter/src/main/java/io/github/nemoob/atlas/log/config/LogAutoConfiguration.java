@@ -192,8 +192,8 @@ public class LogAutoConfiguration {
          * 配置日志过滤器
          */
         @Bean
-        @ConditionalOnMissingBean
-        public FilterRegistrationBean<LoggingFilter> loggingFilterRegistration() {
+        @ConditionalOnMissingBean(name = "atlasLogFilterRegistration")
+        public FilterRegistrationBean<LoggingFilter> atlasLogFilterRegistration() {
             LogConfigProperties effectiveConfig = getEffectiveConfig();
             
             FilterRegistrationBean<LoggingFilter> registration = new FilterRegistrationBean<>();

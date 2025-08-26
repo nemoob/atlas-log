@@ -7,7 +7,7 @@
 
     <groupId>io.github.nemoob</groupId>
     <artifactId>atlas-log</artifactId>
-    <version>0.0.2</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <name>Atlas Log</name>
@@ -21,8 +21,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
         <!-- Spring版本控制 -->
-        <spring.version>5.2.25.RELEASE</spring.version>
-        <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
+        <spring.version>5.2.0.RELEASE</spring.version>
+        <spring-boot.version>2.2.0.RELEASE</spring-boot.version>
         
         <!-- 其他依赖版本 -->
         <aspectj.version>1.9.6</aspectj.version>
