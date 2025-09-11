@@ -67,14 +67,14 @@ public class AtlasLogAnnotationConfigRegistrar implements ImportBeanDefinitionRe
         }
         
         BeanDefinitionBuilder builder = BeanDefinitionBuilder
-            .genericBeanDefinition(AnnotationConfigProcessor.class);
+            .genericBeanDefinition(AtlasLogAnnotationConfigProcessor.class);
         builder.addConstructorArgValue(attributes);
         // builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE); // Spring 5.x+ only
         
         registry.registerBeanDefinition(ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME, 
                                        builder.getBeanDefinition());
         
-        logger.debug("Registered AnnotationConfigProcessor bean: {}", ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME);
+        logger.debug("Registered AtlasLogAnnotationConfigProcessor bean: {}", ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME);
     }
     
     /**

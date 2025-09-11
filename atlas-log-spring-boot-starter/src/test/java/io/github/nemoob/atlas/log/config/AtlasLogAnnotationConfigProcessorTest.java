@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 /**
- * AnnotationConfigProcessor 单元测试
+ * AtlasLogAnnotationConfigProcessor 单元测试
  */
-class AnnotationConfigProcessorTest {
+class AtlasLogAnnotationConfigProcessorTest {
     
-    private AnnotationConfigProcessor processor;
+    private AtlasLogAnnotationConfigProcessor processor;
     private ApplicationContext applicationContext;
     
     @BeforeEach
@@ -36,7 +36,7 @@ class AnnotationConfigProcessorTest {
         attributes.put("conditionEnabled", false);
         
         // 创建处理器
-        processor = new AnnotationConfigProcessor(attributes);
+        processor = new AtlasLogAnnotationConfigProcessor(attributes);
         processor.setApplicationContext(applicationContext);
         
         // 执行处理
@@ -63,7 +63,7 @@ class AnnotationConfigProcessorTest {
         attributes.put("exclusions", new String[]{"*.toString", "*.hashCode"});
         
         // 创建处理器
-        processor = new AnnotationConfigProcessor(attributes);
+        processor = new AtlasLogAnnotationConfigProcessor(attributes);
         processor.setApplicationContext(applicationContext);
         
         // 执行处理
@@ -116,7 +116,7 @@ class AnnotationConfigProcessorTest {
         attributes.put("sensitive", sensitiveAttrs);
         
         // 创建处理器
-        processor = new AnnotationConfigProcessor(attributes);
+        processor = new AtlasLogAnnotationConfigProcessor(attributes);
         processor.setApplicationContext(applicationContext);
         
         // 执行处理
@@ -159,7 +159,7 @@ class AnnotationConfigProcessorTest {
         Map<String, Object> attributes = new HashMap<>();
         
         // 创建处理器
-        processor = new AnnotationConfigProcessor(attributes);
+        processor = new AtlasLogAnnotationConfigProcessor(attributes);
         processor.setApplicationContext(applicationContext);
         
         // 执行处理
@@ -184,7 +184,7 @@ class AnnotationConfigProcessorTest {
         attributes.put("enabledTags", null);
         
         // 创建处理器
-        processor = new AnnotationConfigProcessor(attributes);
+        processor = new AtlasLogAnnotationConfigProcessor(attributes);
         processor.setApplicationContext(applicationContext);
         
         // 执行处理

@@ -82,8 +82,8 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
     private LogConfigProperties getAnnotationConfig(ConfigurableListableBeanFactory beanFactory) {
         try {
             if (beanFactory.containsBean(ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME)) {
-                AnnotationConfigProcessor processor = beanFactory.getBean(
-                    ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME, AnnotationConfigProcessor.class);
+                AtlasLogAnnotationConfigProcessor processor = beanFactory.getBean(
+                    ANNOTATION_CONFIG_PROCESSOR_BEAN_NAME, AtlasLogAnnotationConfigProcessor.class);
                 LogConfigProperties config = processor.getAnnotationConfig();
                 logger.debug("Retrieved annotation configuration: {}", config);
                 return config;

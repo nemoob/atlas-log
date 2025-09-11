@@ -23,18 +23,17 @@ import java.util.Map;
  * @author Atlas Team
  * @since 1.0.0
  */
-@Component
-public class AnnotationConfigProcessor implements BeanPostProcessor, ApplicationContextAware {
+public class AtlasLogAnnotationConfigProcessor implements BeanPostProcessor, ApplicationContextAware {
     
-    private static final Logger logger = LoggerFactory.getLogger(AnnotationConfigProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AtlasLogAnnotationConfigProcessor.class);
     
     private final Map<String, Object> annotationAttributes;
     private ApplicationContext applicationContext;
     private LogConfigProperties annotationConfig;
     
-    public AnnotationConfigProcessor(Map<String, Object> annotationAttributes) {
+    public AtlasLogAnnotationConfigProcessor(Map<String, Object> annotationAttributes) {
         this.annotationAttributes = annotationAttributes;
-        logger.debug("AnnotationConfigProcessor initialized with attributes: {}", annotationAttributes);
+        logger.debug("AtlasLogAnnotationConfigProcessor initialized with attributes: {}", annotationAttributes);
     }
     
     @Override
