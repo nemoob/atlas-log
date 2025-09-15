@@ -20,8 +20,8 @@ import java.util.Map;
  * 处理器在Spring容器初始化时自动执行，将注解配置注册到容器中。
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class AtlasLogAnnotationConfigProcessor implements BeanPostProcessor, ApplicationContextAware {
     
@@ -33,7 +33,23 @@ public class AtlasLogAnnotationConfigProcessor implements BeanPostProcessor, App
     
     public AtlasLogAnnotationConfigProcessor(Map<String, Object> annotationAttributes) {
         this.annotationAttributes = annotationAttributes;
-        logger.debug("AtlasLogAnnotationConfigProcessor initialized with attributes: {}", annotationAttributes);
+        logger.debug("=== AtlasLogAnnotationConfigProcessor Constructor Debug ===");
+        logger.debug("Received annotationAttributes: {}", annotationAttributes);
+        if (annotationAttributes != null) {
+            logger.debug("annotationAttributes keys: {}", annotationAttributes.keySet());
+            Object httpLog = annotationAttributes.get("httpLog");
+            logger.debug("httpLog attribute: {}", httpLog);
+            logger.debug("httpLog type: {}", httpLog != null ? httpLog.getClass() : "null");
+            if (httpLog instanceof Map) {
+                Map<String, Object> httpLogMap = (Map<String, Object>) httpLog;
+                logger.debug("httpLog map keys: {}", httpLogMap.keySet());
+                Object urlFormat = httpLogMap.get("urlFormat");
+                logger.debug("urlFormat from httpLog: '{}'", urlFormat);
+            }
+        } else {
+            logger.debug("annotationAttributes is null!");
+        }
+        logger.debug("============================================================");
     }
     
     @Override
@@ -135,6 +151,8 @@ public class AtlasLogAnnotationConfigProcessor implements BeanPostProcessor, App
         parsePerformanceConfig(config);
         parseConditionConfig(config);
         parseSensitiveConfig(config);
+        parseHttpLogConfig(config);
+        parseResultLogConfig(config);
     }
     
     /**
@@ -197,6 +215,53 @@ public class AtlasLogAnnotationConfigProcessor implements BeanPostProcessor, App
             sensitiveConfig.setCustomFields(Arrays.asList(customFields));
             
             logger.debug("Parsed sensitive configuration: {}", sensitiveConfig);
+        }
+    }
+    
+    /**
+     * 解析HTTP日志配置
+     */
+    private void parseHttpLogConfig(LogConfigProperties config) {
+        Map<String, Object> httpLogAttrs = getAttributeValue("httpLog", Map.class, null);
+        logger.debug("parseHttpLogConfig - httpLogAttrs: {}", httpLogAttrs);
+        
+        if (httpLogAttrs != null) {
+            LogConfigProperties.HttpLogConfig httpLogConfig = config.getHttpLog();
+            
+            // 解析 urlFormat
+            String urlFormat = getNestedAttributeValue(httpLogAttrs, "urlFormat", String.class, "");
+            logger.debug("parseHttpLogConfig - urlFormat from annotation: '{}'", urlFormat);
+            httpLogConfig.setUrlFormat(urlFormat);
+            
+            // 解析其他属性
+            httpLogConfig.setLogFullParameters(getNestedAttributeValue(httpLogAttrs, "logFullParameters", Boolean.class, true));
+            httpLogConfig.setIncludeQueryString(getNestedAttributeValue(httpLogAttrs, "includeQueryString", Boolean.class, true));
+            httpLogConfig.setIncludeHeaders(getNestedAttributeValue(httpLogAttrs, "includeHeaders", Boolean.class, false));
+            
+            String[] excludeHeaders = getNestedAttributeValue(httpLogAttrs, "excludeHeaders", String[].class, 
+                                                             new String[]{"authorization", "cookie", "x-auth-token"});
+            httpLogConfig.setExcludeHeaders(Arrays.asList(excludeHeaders));
+            
+            logger.debug("parseHttpLogConfig - Final HTTP log configuration: urlFormat='{}', includeQueryString={}, logFullParameters={}", 
+                        httpLogConfig.getUrlFormat(), httpLogConfig.isIncludeQueryString(), httpLogConfig.isLogFullParameters());
+        } else {
+            logger.debug("parseHttpLogConfig - No httpLog annotation found, using defaults");
+        }
+    }
+    
+    /**
+     * 解析返回值记录配置
+     */
+    private void parseResultLogConfig(LogConfigProperties config) {
+        Map<String, Object> resultLogAttrs = getAttributeValue("resultLog", Map.class, null);
+        if (resultLogAttrs != null) {
+            LogConfigProperties.ResultLogConfig resultLogConfig = config.getResultLog();
+            resultLogConfig.setEnabled(getNestedAttributeValue(resultLogAttrs, "enabled", Boolean.class, true));
+            resultLogConfig.setMaxLength(getNestedAttributeValue(resultLogAttrs, "maxLength", Integer.class, 1000));
+            resultLogConfig.setPrintAll(getNestedAttributeValue(resultLogAttrs, "printAll", Boolean.class, false));
+            resultLogConfig.setTruncateMessage(getNestedAttributeValue(resultLogAttrs, "truncateMessage", String.class, "[TRUNCATED]"));
+            
+            logger.debug("Parsed result log configuration: {}", resultLogConfig);
         }
     }
     

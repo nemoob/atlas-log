@@ -3,8 +3,8 @@ package io.github.nemoob.atlas.log.exception;
 /**
  * Atlas Log基础异常类
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class LogException extends RuntimeException {
     

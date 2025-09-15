@@ -45,8 +45,8 @@ import java.lang.annotation.*;
  * <h3>配置优先级：</h3>
  * <p>注解配置 > application.yml > 环境变量 > 默认值</p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -125,4 +125,14 @@ public @interface EnableAtlasLog {
      * 敏感数据配置
      */
     AtlasLogSensitive sensitive() default @AtlasLogSensitive;
+    
+    /**
+     * HTTP请求日志配置
+     */
+    AtlasLogHttpLog httpLog() default @AtlasLogHttpLog;
+    
+    /**
+     * 返回值记录配置
+     */
+    AtlasLogResultLog resultLog() default @AtlasLogResultLog;
 }

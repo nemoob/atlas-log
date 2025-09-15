@@ -13,8 +13,8 @@ import java.util.concurrent.Executor;
  * 异步配置示例
  * 展示如何配置 TraceId 在异步执行中的传递
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Configuration
 @EnableAsync

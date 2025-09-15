@@ -15,6 +15,8 @@ Atlas Log 是一个为 Spring Boot 应用设计的轻量级、高性能的日志
 - 🔧 **灵活配置** - 支持 YAML 配置和注解配置两种方式
 - 📊 **链路追踪** - 自动生成和传递 TraceId
 - 🎛️ **条件日志** - 基于 SpEL 表达式的条件日志记录
+- 🌐 **HTTP 日志定制** - 支持自定义 URL 格式，包含占位符 `{method}`, `{uri}`, `{queryString}`, `{remoteAddr}` (v0.2.0+)
+- 🎨 **多种格式化器** - 支持 JSON、key-value、自定义格式化器，可在注解级别配置 (v0.2.0+)
 
 ## 快速开始
 
@@ -24,7 +26,7 @@ Atlas Log 是一个为 Spring Boot 应用设计的轻量级、高性能的日志
 <dependency>
     <groupId>io.github.nemoob</groupId>
     <artifactId>atlas-log-spring-boot-starter</artifactId>
-    <version>${last.version}</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -214,6 +216,11 @@ public void adminOperation(String operation) { }
 
 ## 文档导航
 
+### 📖 版本文档
+- 🆕 **[0.2.0 版本教程](docs/TUTORIAL_V0.2.0.md)** - 最新版本功能详解和使用指南
+- 📋 **[变更日志](docs/CHANGELOG.md)** - 版本更新记录和重要修复
+
+### 📚 完整文档
 - 📚 [开发者指南](docs/DEVELOPER_GUIDE.md) - 详细的使用教程和最佳实践
 - 🏗️ [系统架构](docs/ARCHITECTURE.md) - 架构设计和核心组件说明
 - ⚙️ [配置参考](docs/CONFIGURATION.md) - 完整的配置选项说明

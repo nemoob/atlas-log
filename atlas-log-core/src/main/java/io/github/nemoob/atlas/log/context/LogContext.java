@@ -10,8 +10,8 @@ import java.util.Map;
  * 日志上下文
  * 在日志处理过程中传递各种上下文信息，供SpEL表达式使用
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Data
 @Accessors(chain = true)

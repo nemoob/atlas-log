@@ -4,13 +4,15 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Atlas Log配置属性
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Data
 @ConfigurationProperties(prefix = "atlas.log")
@@ -82,9 +84,26 @@ public class LogConfigProperties {
     private ConditionConfig condition = new ConditionConfig();
     
     /**
-     * 敏感数据配置
+     * 敏感数据脱敏配置
      */
     private SensitiveConfig sensitive = new SensitiveConfig();
+    
+    // 序列化器配置已移除，统一使用 Fastjson
+    
+    /**
+     * 参数格式配置
+     */
+    private ArgumentFormatConfig argumentFormat = new ArgumentFormatConfig();
+    
+    /**
+     * HTTP请求日志配置
+     */
+    private HttpLogConfig httpLog = new HttpLogConfig();
+    
+    /**
+     * 返回值记录配置
+     */
+    private ResultLogConfig resultLog = new ResultLogConfig();
     
     /**
      * 复制构造函数（用于配置合并）
@@ -105,6 +124,9 @@ public class LogConfigProperties {
             this.performance = new PerformanceConfig(other.performance);
             this.condition = new ConditionConfig(other.condition);
             this.sensitive = new SensitiveConfig(other.sensitive);
+            this.argumentFormat = new ArgumentFormatConfig(other.argumentFormat);
+            this.httpLog = new HttpLogConfig(other.httpLog);
+            this.resultLog = new ResultLogConfig(other.resultLog);
         }
     }
     
@@ -268,13 +290,203 @@ public class LogConfigProperties {
         private boolean enabled = true;
         
         /**
-         * 自定义敏感字段
+         * 自定义敏感字段（用于反射模式）
          */
         private List<String> customFields = new ArrayList<>();
         
         /**
-         * 脱敏标记
+          * 脱敏替换值
+          */
+         private String maskValue = "***";
+     }
+     
+     // SerializerConfig 已移除，统一使用 Fastjson
+     
+     /**
+      * 参数格式配置
+      */
+     @Data
+     public static class ArgumentFormatConfig {
+         
+         /**
+          * 参数输出格式类型
+          * JSON: 使用 JSON 格式输出参数 (默认)
+          * KEY_VALUE: 使用 key=value&key2=value2 格式输出参数
+          */
+         private ArgumentFormatType type = ArgumentFormatType.JSON;
+         
+         /**
+          * key=value 格式的分隔符
+          */
+         private String separator = "&";
+         
+         /**
+          * key=value 格式的键值分隔符
+          */
+         private String keyValueSeparator = "=";
+         
+         /**
+           * 是否包含参数索引作为键名
+           * true: arg0=value1&arg1=value2
+           * false: value1&value2
+           */
+          private boolean includeParameterIndex = true;
+          
+          /**
+           * 自定义格式化器名称
+           * 当 type = CUSTOM 时使用
+           */
+          private String customFormatterName = "";
+          
+          /**
+           * 自定义格式化器配置
+           * 用于传递给自定义格式化器的配置参数
+           */
+          private Map<String, Object> customFormatterConfig = new HashMap<>();
+         
+         /**
+           * 复制构造函数
+           */
+          public ArgumentFormatConfig(ArgumentFormatConfig other) {
+              if (other != null) {
+                  this.type = other.type;
+                  this.separator = other.separator;
+                  this.keyValueSeparator = other.keyValueSeparator;
+                  this.includeParameterIndex = other.includeParameterIndex;
+                  this.customFormatterName = other.customFormatterName;
+                  this.customFormatterConfig = new HashMap<>(other.customFormatterConfig);
+              }
+          }
+         
+         /**
+          * 默认构造函数
+          */
+         public ArgumentFormatConfig() {
+         }
+     }
+     
+     /**
+       * 参数格式类型枚举
+       */
+      public enum ArgumentFormatType {
+          /**
+           * JSON 格式
+           */
+          JSON,
+          
+          /**
+           * key=value 格式
+           */
+          KEY_VALUE,
+          
+          /**
+           * 自定义格式化器
+           */
+          CUSTOM
+      }
+     
+     /**
+     * HTTP请求日志配置
+     */
+    @Data
+    public static class HttpLogConfig {
+        
+        /**
+         * 复制构造函数
          */
-        private String maskValue = "***";
-    }
-}
+        public HttpLogConfig(HttpLogConfig other) {
+            if (other != null) {
+                this.logFullParameters = other.logFullParameters;
+                this.urlFormat = other.urlFormat;
+                this.includeQueryString = other.includeQueryString;
+                this.includeHeaders = other.includeHeaders;
+                this.excludeHeaders = new ArrayList<>(other.excludeHeaders);
+            }
+        }
+        
+        /**
+         * 默认构造函数
+         */
+        public HttpLogConfig() {
+            // 使用默认值
+        }
+        
+        /**
+         * 是否记录完整的请求参数
+         */
+        private boolean logFullParameters = true;
+        
+        /**
+         * URL格式化模式
+         * 支持占位符：{method}, {uri}, {queryString}, {remoteAddr}
+         */
+        private String urlFormat = "{uri}{queryString}";
+        
+        /**
+         * 是否包含查询字符串
+         */
+        private boolean includeQueryString = true;
+        
+        /**
+         * 是否包含请求头信息
+         */
+        private boolean includeHeaders = false;
+        
+        /**
+         * 排除的请求头（敏感信息）
+         */
+        private List<String> excludeHeaders = new ArrayList<String>() {{
+            add("authorization");
+            add("cookie");
+            add("x-auth-token");
+        }};
+     }
+     
+     /**
+      * 返回值记录配置
+      */
+     @Data
+     public static class ResultLogConfig {
+         
+         /**
+          * 复制构造函数
+          */
+         public ResultLogConfig(ResultLogConfig other) {
+             if (other != null) {
+                 this.enabled = other.enabled;
+                 this.maxLength = other.maxLength;
+                 this.printAll = other.printAll;
+                 this.truncateMessage = other.truncateMessage;
+             }
+         }
+         
+         /**
+          * 默认构造函数
+          */
+         public ResultLogConfig() {
+             // 使用默认值
+         }
+         
+         /**
+          * 是否全局启用返回值记录
+          * 当此项为 false 时，即使 @Log 注解中 logResult=true 也不会记录返回值
+          */
+         private boolean enabled = true;
+         
+         /**
+          * 返回值最大长度限制
+          * -1 表示不限制长度（全部打印）
+          */
+         private int maxLength = 1000;
+         
+         /**
+          * 是否打印完整返回值（忽略长度限制）
+          */
+         private boolean printAll = false;
+         
+         /**
+          * 返回值被截断时的提示信息
+          */
+         private String truncateMessage = "[TRUNCATED]";
+     }
+ }

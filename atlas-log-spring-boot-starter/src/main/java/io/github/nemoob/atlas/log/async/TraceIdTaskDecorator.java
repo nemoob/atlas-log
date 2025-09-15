@@ -7,8 +7,8 @@ import org.springframework.core.task.TaskDecorator;
  * TraceId 任务装饰器
  * 用于在异步执行时传递 TraceId 到新线程
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class TraceIdTaskDecorator implements TaskDecorator {
     

@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
  * TraceId拦截器
  * 从HTTP请求头中提取TraceId，如果不存在则生成一个新的
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Slf4j
 public class TraceIdInterceptor implements HandlerInterceptor {

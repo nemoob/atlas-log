@@ -5,8 +5,8 @@ import java.lang.annotation.*;
 /**
  * Atlas Log 性能监控配置注解
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)

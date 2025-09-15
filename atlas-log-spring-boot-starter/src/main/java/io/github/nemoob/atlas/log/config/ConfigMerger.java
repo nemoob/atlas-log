@@ -20,8 +20,8 @@ import java.util.List;
  * 优先级：注解配置 > application.yml > 环境变量 > 默认值
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -43,11 +43,27 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
         logger.info("Starting Atlas Log configuration merge process...");
         
         try {
+            logger.debug("=== Atlas Log Configuration Processing Started ===");
+            
             // 获取注解配置
             LogConfigProperties annotationConfig = getAnnotationConfig(beanFactory);
+            logger.debug("Retrieved annotationConfig: {}", annotationConfig);
+            if (annotationConfig != null && annotationConfig.getHttpLog() != null) {
+                logger.debug("Annotation httpLog urlFormat: '{}'", annotationConfig.getHttpLog().getUrlFormat());
+                logger.debug("Annotation httpLog includeQueryString: {}", annotationConfig.getHttpLog().isIncludeQueryString());
+            } else {
+                logger.debug("No annotation httpLog configuration found");
+            }
             
             // 获取属性文件配置
             LogConfigProperties propertiesConfig = getPropertiesConfig(beanFactory);
+            logger.debug("Retrieved propertiesConfig: {}", propertiesConfig);
+            if (propertiesConfig != null && propertiesConfig.getHttpLog() != null) {
+                logger.debug("Properties httpLog urlFormat: '{}'", propertiesConfig.getHttpLog().getUrlFormat());
+                logger.debug("Properties httpLog includeQueryString: {}", propertiesConfig.getHttpLog().isIncludeQueryString());
+            } else {
+                logger.debug("No properties httpLog configuration found");
+            }
             
             // 检测配置冲突
             if (annotationConfig != null && conflictDetector != null) {
@@ -56,6 +72,10 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
             
             // 合并配置（注解优先）
             LogConfigProperties mergedConfig = mergeConfigs(annotationConfig, propertiesConfig);
+            logger.debug("Merged configuration: {}", mergedConfig);
+            if (mergedConfig != null && mergedConfig.getHttpLog() != null) {
+                logger.debug("Final merged httpLog urlFormat: '{}'", mergedConfig.getHttpLog().getUrlFormat());
+            }
             
             // 验证最终配置
             if (mergedConfig != null && configValidator != null) {
@@ -66,6 +86,7 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
             if (annotationConfig != null) {
                 registerMergedConfig(beanFactory, mergedConfig);
                 logger.info("Configuration merge completed successfully");
+                logger.debug("=== Atlas Log Configuration Processing Completed ===");
             } else {
                 logger.debug("No annotation configuration found, skipping merge process");
             }
@@ -191,6 +212,7 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
         mergePerformanceConfig(merged, annotationConfig, propertiesConfig);
         mergeConditionConfig(merged, annotationConfig, propertiesConfig);
         mergeSensitiveConfig(merged, annotationConfig, propertiesConfig);
+        mergeHttpLogConfig(merged, annotationConfig, propertiesConfig);
     }
     
     /**
@@ -270,19 +292,63 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
     }
     
     /**
-     * 解析配置值（注解优先）
+     * 合并HTTP日志配置
+     */
+    private void mergeHttpLogConfig(LogConfigProperties merged, 
+                                  LogConfigProperties annotationConfig, 
+                                  LogConfigProperties propertiesConfig) {
+        
+        LogConfigProperties.HttpLogConfig mergedHttpLog = merged.getHttpLog();
+        LogConfigProperties.HttpLogConfig annotationHttpLog = annotationConfig != null ? annotationConfig.getHttpLog() : null;
+        LogConfigProperties.HttpLogConfig propertiesHttpLog = propertiesConfig != null ? propertiesConfig.getHttpLog() : null;
+        
+        if (annotationHttpLog != null || propertiesHttpLog != null) {
+            // 处理 logFullParameters
+            Boolean annotationLogFullParams = annotationHttpLog != null ? Boolean.valueOf(annotationHttpLog.isLogFullParameters()) : null;
+            Boolean propertiesLogFullParams = propertiesHttpLog != null ? Boolean.valueOf(propertiesHttpLog.isLogFullParameters()) : null;
+            mergedHttpLog.setLogFullParameters(resolveValue(annotationLogFullParams, propertiesLogFullParams, Boolean.TRUE, "httpLog.logFullParameters"));
+            
+            // 处理 urlFormat
+            mergedHttpLog.setUrlFormat(resolveValue(
+                annotationHttpLog != null ? annotationHttpLog.getUrlFormat() : null,
+                propertiesHttpLog != null ? propertiesHttpLog.getUrlFormat() : null,
+                "{uri}{queryString}", "httpLog.urlFormat"));
+            
+            // 处理 includeQueryString
+            Boolean annotationIncludeQuery = annotationHttpLog != null ? Boolean.valueOf(annotationHttpLog.isIncludeQueryString()) : null;
+            Boolean propertiesIncludeQuery = propertiesHttpLog != null ? Boolean.valueOf(propertiesHttpLog.isIncludeQueryString()) : null;
+            mergedHttpLog.setIncludeQueryString(resolveValue(annotationIncludeQuery, propertiesIncludeQuery, Boolean.TRUE, "httpLog.includeQueryString"));
+            
+            // 处理 includeHeaders
+            Boolean annotationIncludeHeaders = annotationHttpLog != null ? Boolean.valueOf(annotationHttpLog.isIncludeHeaders()) : null;
+            Boolean propertiesIncludeHeaders = propertiesHttpLog != null ? Boolean.valueOf(propertiesHttpLog.isIncludeHeaders()) : null;
+            mergedHttpLog.setIncludeHeaders(resolveValue(annotationIncludeHeaders, propertiesIncludeHeaders, Boolean.FALSE, "httpLog.includeHeaders"));
+            
+            // 处理 excludeHeaders
+            mergedHttpLog.setExcludeHeaders(resolveListValue(
+                annotationHttpLog != null ? annotationHttpLog.getExcludeHeaders() : null,
+                propertiesHttpLog != null ? propertiesHttpLog.getExcludeHeaders() : null,
+                "httpLog.excludeHeaders"));
+        }
+    }
+    
+    /**
+     * 解析配置值（配置文件优先）
      */
     private <T> T resolveValue(T annotationValue, T propertiesValue, T defaultValue, String configName) {
         T result;
         String source;
         
-        if (annotationValue != null && !isDefaultValue(annotationValue)) {
-            result = annotationValue;
-            source = "annotation";
-        } else if (propertiesValue != null && !isDefaultValue(propertiesValue)) {
+        // 配置文件优先：如果配置文件有配置，使用配置文件的值
+        if (propertiesValue != null && !isDefaultValue(propertiesValue)) {
             result = propertiesValue;
             source = "properties";
+        } else if (annotationValue != null && !isDefaultValue(annotationValue)) {
+            // 如果配置文件没有配置，使用注解的值
+            result = annotationValue;
+            source = "annotation";
         } else {
+            // 都没有配置，使用默认值
             result = defaultValue;
             source = "default";
         }
@@ -321,20 +387,57 @@ public class ConfigMerger implements BeanFactoryPostProcessor {
             return true;
         }
         
+        // 检查字符串默认值
         if (value instanceof String) {
-            String str = (String) value;
-            return str.isEmpty() || "INFO".equals(str) || "yyyy-MM-dd HH:mm:ss.SSS".equals(str) 
-                   || "X-Trace-Id".equals(str) || "uuid".equals(str) || "***".equals(str);
+            String strValue = (String) value;
+            // ✅ 检查 HTTP 日志的系统默认值
+            if ("{uri}{queryString}".equals(strValue)) {
+                return true; // 这是系统默认的 URL 格式
+            }
+            // ✅ 检查其他系统默认值
+            if ("yyyy-MM-dd HH:mm:ss.SSS".equals(strValue)) {
+                return true; // 默认日期格式
+            }
+            if ("INFO".equals(strValue)) {
+                return true; // 默认日志级别
+            }
+            if ("X-Trace-Id".equals(strValue)) {
+                return true; // 默认 TraceId 头名称
+            }
+            if ("uuid".equals(strValue)) {
+                return true; // 默认生成器类型
+            }
+            if ("***".equals(strValue)) {
+                return true; // 默认脱敏值
+            }
+            return strValue.isEmpty() || "default".equals(strValue);
         }
         
-        if (value instanceof Number) {
-            Number num = (Number) value;
-            return num.longValue() == 1000L || num.intValue() == 2000;
-        }
-        
+        // 检查布尔值默认值（根据具体配置项判断）
         if (value instanceof Boolean) {
-            // 对于boolean值，不认为是默认值，因为true/false都是有意义的配置
+            // 对于布尔值，我们不能简单判断，因为 true/false 都可能是有意义的配置
             return false;
+        }
+        
+        // 检查数值默认值
+        if (value instanceof Number) {
+            long longValue = ((Number) value).longValue();
+            // ✅ 检查常见的系统默认数值
+            if (longValue == 1000L) {
+                return true; // 默认慢方法阈值
+            }
+            if (longValue == 2000L) {
+                return true; // 默认最大消息长度
+            }
+            if (longValue == 32L) {
+                return true; // 默认 TraceId 长度
+            }
+            return longValue == 0L;
+        }
+        
+        // 检查集合默认值
+        if (value instanceof java.util.Collection) {
+            return ((java.util.Collection<?>) value).isEmpty();
         }
         
         return false;

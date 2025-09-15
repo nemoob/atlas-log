@@ -17,8 +17,8 @@ import java.util.Optional;
  * 用户服务类
  * 演示Atlas Log的基本功能
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Service
 @Slf4j

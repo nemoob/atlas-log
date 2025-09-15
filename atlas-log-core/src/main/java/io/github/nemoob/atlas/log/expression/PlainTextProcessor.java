@@ -6,8 +6,8 @@ import io.github.nemoob.atlas.log.context.LogContext;
  * 纯文本表达式处理器
  * 处理不包含任何SpEL表达式的纯文本字符串
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class PlainTextProcessor implements ExpressionProcessor {
     

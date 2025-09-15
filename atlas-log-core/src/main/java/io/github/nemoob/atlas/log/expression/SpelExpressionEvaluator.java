@@ -39,8 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * - executionTime: 方法执行时间
  * - 自定义变量通过LogContext传递
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  * @version 2.0.0
  */
 @Slf4j

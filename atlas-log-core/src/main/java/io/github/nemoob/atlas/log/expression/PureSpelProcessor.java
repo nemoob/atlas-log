@@ -13,8 +13,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * 纯SpEL表达式处理器
  * 处理整个字符串都是SpEL表达式的情况，如: #{args[0]}
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Slf4j
 public class PureSpelProcessor implements ExpressionProcessor {

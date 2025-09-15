@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
  * 1. 方法参数 - 忽略敏感参数的记录（如密码、token等）
  * 2. 方法 - 完全忽略该方法的日志记录
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

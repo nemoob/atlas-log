@@ -13,8 +13,8 @@ import java.util.concurrent.CompletableFuture;
  * 异步控制器示例
  * 展示 TraceId 在异步调用中的传递
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @RestController
 @RequestMapping("/api/async")

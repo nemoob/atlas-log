@@ -3,8 +3,8 @@ package io.github.nemoob.atlas.log.annotation;
 /**
  * 日志级别枚举
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public enum LogLevel {
     

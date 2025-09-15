@@ -15,8 +15,8 @@ import java.util.UUID;
  * 订单服务类
  * 演示Atlas Log的高级功能，包括多注解、复杂条件等
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Service
 @Slf4j

@@ -1,17 +1,29 @@
 package io.github.nemoob.atlas.log.config;
 
-import io.github.nemoob.atlas.log.aspect.LogAspect;
+import io.github.nemoob.atlas.log.aspect.AtlasLogAspect;
 import io.github.nemoob.atlas.log.async.TraceIdTaskDecorator;
 import io.github.nemoob.atlas.log.expression.SpelExpressionEvaluator;
-import io.github.nemoob.atlas.log.serializer.JsonArgumentSerializer;
+import io.github.nemoob.atlas.log.serializer.ArgumentSerializer;
+import io.github.nemoob.atlas.log.serializer.ArgumentFormatConfig;
+import io.github.nemoob.atlas.log.serializer.ArgumentFormatType;
+import io.github.nemoob.atlas.log.serializer.ArgumentFormatter;
+import io.github.nemoob.atlas.log.serializer.ArgumentFormatterManager;
+import io.github.nemoob.atlas.log.serializer.FastjsonArgumentSerializer;
+import io.github.nemoob.atlas.log.serializer.JsonArgumentFormatter;
+import io.github.nemoob.atlas.log.serializer.KeyValueArgumentFormatter;
 import io.github.nemoob.atlas.log.serializer.SensitiveDataMasker;
+import io.github.nemoob.atlas.log.comparator.JsonPathValueExtractor;
+import io.github.nemoob.atlas.log.processor.JsonPathCompareProcessor;
 import io.github.nemoob.atlas.log.web.LoggingFilter;
 import io.github.nemoob.atlas.log.web.TraceIdInterceptor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+// Jackson 相关导入已移除，使用 Fastjson 替代
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,6 +37,8 @@ import org.springframework.core.task.TaskDecorator;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Map;
+
 /**
  * Atlas Log自动配置类
  * <p>
@@ -32,11 +46,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * 并按照优先级策略进行配置合并。
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Configuration
 @EnableConfigurationProperties(LogConfigProperties.class)
+@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)  // 添加这行
 @ConditionalOnProperty(prefix = "atlas.log", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class LogAutoConfiguration {
@@ -81,37 +96,116 @@ public class LogAutoConfiguration {
         return masker;
     }
     
-    /**
-     * 配置ObjectMapper
-     */
-    @Bean
-    @ConditionalOnMissingBean(name = "atlasLogObjectMapper")
-    public ObjectMapper atlasLogObjectMapper(LogConfigProperties properties,
-                                            ApplicationContext applicationContext) {
-        LogConfigProperties effectiveConfig = getEffectiveConfig(applicationContext, properties);
-        
-        ObjectMapper mapper = new ObjectMapper();
-        
-        if (effectiveConfig.isPrettyPrint()) {
-            mapper.writerWithDefaultPrettyPrinter();
-        }
-        
-        // 配置日期格式
-        if (effectiveConfig.getDateFormat() != null && !effectiveConfig.getDateFormat().isEmpty()) {
-            mapper.setDateFormat(new java.text.SimpleDateFormat(effectiveConfig.getDateFormat()));
-        }
-        
-        return mapper;
-    }
+    // ObjectMapper 配置已移除，使用 Fastjson 替代
     
     /**
-     * 配置参数序列化器
+     * 配置参数格式化器管理器
      */
     @Bean
     @ConditionalOnMissingBean
-    public JsonArgumentSerializer jsonArgumentSerializer(ObjectMapper atlasLogObjectMapper,
-                                                         SensitiveDataMasker sensitiveDataMasker) {
-        return new JsonArgumentSerializer(atlasLogObjectMapper, sensitiveDataMasker);
+    public ArgumentFormatterManager argumentFormatterManager(SensitiveDataMasker sensitiveDataMasker,
+                                                           LogConfigProperties properties,
+                                                           ApplicationContext applicationContext) {
+        LogConfigProperties effectiveConfig = getEffectiveConfig(applicationContext, properties);
+        LogConfigProperties.ArgumentFormatConfig config = effectiveConfig.getArgumentFormat();
+        
+        // 创建内置格式化器
+        JsonArgumentFormatter jsonFormatter = new JsonArgumentFormatter(sensitiveDataMasker);
+        KeyValueArgumentFormatter keyValueFormatter = new KeyValueArgumentFormatter(
+            sensitiveDataMasker,
+            config.getSeparator(),
+            config.getKeyValueSeparator(),
+            config.isIncludeParameterIndex()
+        );
+        
+        // 创建格式化器管理器
+        ArgumentFormatterManager manager = new ArgumentFormatterManager(jsonFormatter, "json");
+        
+        // 注册内置格式化器
+        manager.registerFormatter("json", jsonFormatter);
+        manager.registerFormatter("key-value", keyValueFormatter);
+        
+        // 注册用户自定义格式化器（如果存在）
+        registerCustomFormatters(manager, applicationContext);
+        
+        log.info("ArgumentFormatterManager configured with formatters: {}", manager.getFormatterNames());
+        return manager;
+    }
+    
+    /**
+     * 注册用户自定义格式化器
+     */
+    private void registerCustomFormatters(ArgumentFormatterManager manager, ApplicationContext applicationContext) {
+        try {
+            // 获取所有 ArgumentFormatter 类型的 Bean
+            Map<String, ArgumentFormatter> customFormatters = applicationContext.getBeansOfType(ArgumentFormatter.class);
+            
+            for (Map.Entry<String, ArgumentFormatter> entry : customFormatters.entrySet()) {
+                String beanName = entry.getKey();
+                ArgumentFormatter formatter = entry.getValue();
+                
+                // 跳过内置格式化器
+                if (formatter instanceof JsonArgumentFormatter || formatter instanceof KeyValueArgumentFormatter) {
+                    continue;
+                }
+                
+                // 注册自定义格式化器
+                String formatterName = formatter.getName();
+                if (formatterName == null || formatterName.trim().isEmpty()) {
+                    formatterName = beanName;
+                }
+                
+                manager.registerFormatter(formatterName, formatter);
+                log.info("Registered custom formatter: {} -> {}", formatterName, formatter.getClass().getSimpleName());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to register custom formatters: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * 配置参数格式配置（兼容性保持）
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ArgumentFormatConfig argumentFormatConfig(LogConfigProperties properties,
+                                                    ApplicationContext applicationContext) {
+        LogConfigProperties effectiveConfig = getEffectiveConfig(applicationContext, properties);
+        LogConfigProperties.ArgumentFormatConfig config = effectiveConfig.getArgumentFormat();
+        
+        ArgumentFormatType type = ArgumentFormatType.JSON;
+        if (config.getType() == LogConfigProperties.ArgumentFormatType.KEY_VALUE) {
+            type = ArgumentFormatType.KEY_VALUE;
+        }
+        
+        return new ArgumentFormatConfig(
+            type,
+            config.getSeparator(),
+            config.getKeyValueSeparator(),
+            config.isIncludeParameterIndex()
+        );
+    }
+    
+    /**
+     * 配置参数序列化器（Fastjson）
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "com.alibaba.fastjson2.JSON")
+    public FastjsonArgumentSerializer fastjsonArgumentSerializer(SensitiveDataMasker sensitiveDataMasker,
+                                                                 ArgumentFormatConfig argumentFormatConfig) {
+        log.info("Using Fastjson-based argument serializer with format: {}", argumentFormatConfig.getType());
+        return new FastjsonArgumentSerializer(sensitiveDataMasker, argumentFormatConfig);
+    }
+    
+    /**
+     * 配置统一的参数序列化器接口
+     */
+    @Bean
+    @ConditionalOnMissingBean(ArgumentSerializer.class)
+    public ArgumentSerializer argumentSerializer(FastjsonArgumentSerializer fastjsonSerializer) {
+        log.info("ArgumentSerializer configured with Fastjson implementation");
+        return fastjsonSerializer;
     }
     
     /**
@@ -138,15 +232,48 @@ public class LogAutoConfiguration {
     }
     
     /**
+     * 配置 JsonPath 值提取器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "com.jayway.jsonpath.JsonPath")
+    public JsonPathValueExtractor jsonPathValueExtractor() {
+        return new JsonPathValueExtractor(true);
+    }
+    
+    /**
+     * 配置 JsonPath 比较处理器
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnClass(name = "com.jayway.jsonpath.JsonPath")
+    public JsonPathCompareProcessor jsonPathCompareProcessor(JsonPathValueExtractor jsonPathValueExtractor) {
+        return new JsonPathCompareProcessor(jsonPathValueExtractor);
+    }
+    
+    /**
+     * 配置 JsonPath 比较处理器（降级版本）
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnMissingClass("com.jayway.jsonpath.JsonPath")
+    public JsonPathCompareProcessor jsonPathCompareProcessorFallback() {
+        // 当 JsonPath 不可用时，创建一个空的处理器
+        return new JsonPathCompareProcessor(null);
+    }
+    
+    /**
      * 配置日志切面
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.aspectj.lang.annotation.Aspect")
-    public LogAspect logAspect(SpelExpressionEvaluator spelExpressionEvaluator,
-                               JsonArgumentSerializer argumentSerializer) {
+    public AtlasLogAspect atlasLogAspect(SpelExpressionEvaluator spelExpressionEvaluator,
+                                    ArgumentSerializer argumentSerializer,
+                                    JsonPathCompareProcessor jsonPathCompareProcessor,
+                                    ArgumentFormatterManager argumentFormatterManager) {
         log.info("Atlas Log aspect configured successfully");
-        return new LogAspect(spelExpressionEvaluator, argumentSerializer);
+        return new AtlasLogAspect(spelExpressionEvaluator, argumentSerializer, jsonPathCompareProcessor, argumentFormatterManager);
     }
     
     /**
@@ -193,16 +320,16 @@ public class LogAutoConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(name = "atlasLogFilterRegistration")
-        public FilterRegistrationBean<LoggingFilter> atlasLogFilterRegistration() {
+        public FilterRegistrationBean<LoggingFilter> atlasLogFilterRegistration(ArgumentFormatConfig argumentFormatConfig) {
             LogConfigProperties effectiveConfig = getEffectiveConfig();
             
             FilterRegistrationBean<LoggingFilter> registration = new FilterRegistrationBean<>();
-            registration.setFilter(new LoggingFilter(effectiveConfig));
+            registration.setFilter(new LoggingFilter(effectiveConfig, argumentFormatConfig));
             registration.addUrlPatterns("/*");
             registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
             registration.setName("atlasLoggingFilter");
             
-            log.info("Atlas Log filter configured successfully");
+            log.info("Atlas Log filter configured successfully with argument format: {}", argumentFormatConfig.getType());
             return registration;
         }
         
@@ -226,8 +353,17 @@ public class LogAutoConfiguration {
          */
         private LogConfigProperties getEffectiveConfig() {
             try {
-                return applicationContext.getBean("atlasLogMergedConfig", LogConfigProperties.class);
+                LogConfigProperties mergedConfig = applicationContext.getBean("atlasLogMergedConfig", LogConfigProperties.class);
+                log.debug("Successfully retrieved merged configuration: atlasLogMergedConfig");
+                if (mergedConfig.getHttpLog() != null) {
+                    log.debug("Merged config HTTP Log urlFormat: '{}'", mergedConfig.getHttpLog().getUrlFormat());
+                }
+                return mergedConfig;
             } catch (Exception e) {
+                log.warn("Failed to retrieve merged configuration 'atlasLogMergedConfig', falling back to properties: {}", e.getMessage());
+                if (properties.getHttpLog() != null) {
+                    log.debug("Fallback properties HTTP Log urlFormat: '{}'", properties.getHttpLog().getUrlFormat());
+                }
                 return properties;
             }
         }

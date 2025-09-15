@@ -16,8 +16,8 @@ import java.util.Map;
  * 负责解析 @EnableAtlasLog 注解并注册相关的配置处理器组件到Spring容器中。
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class AtlasLogAnnotationConfigRegistrar implements ImportBeanDefinitionRegistrar {
     

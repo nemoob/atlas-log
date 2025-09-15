@@ -4,8 +4,8 @@ package io.github.nemoob.atlas.log.expression;
  * 表达式类型枚举
  * 用于区分不同类型的表达式以便选择合适的处理策略
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public enum ExpressionType {
     

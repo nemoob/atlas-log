@@ -3,8 +3,8 @@ package io.github.nemoob.atlas.log.exception;
 /**
  * 序列化异常
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class SerializationException extends LogException {
     

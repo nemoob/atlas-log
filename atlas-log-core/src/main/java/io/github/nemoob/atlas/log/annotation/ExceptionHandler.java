@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
  * 异常处理注解
  * 用于定义特定异常类型的日志处理方式
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)

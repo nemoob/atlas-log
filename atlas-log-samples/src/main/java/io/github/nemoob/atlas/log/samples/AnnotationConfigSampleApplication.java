@@ -25,8 +25,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *   <li>排除特定方法的日志记录</li>
  * </ul>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @SpringBootApplication
 @EnableAtlasLog(

@@ -12,8 +12,8 @@ import java.util.concurrent.CompletableFuture;
  * 异步用户服务示例
  * 展示 TraceId 在异步执行中的传递
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Service
 @Slf4j

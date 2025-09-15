@@ -6,8 +6,8 @@ import io.github.nemoob.atlas.log.annotation.Log;
  * 参数序列化器接口
  * 用于将方法参数和返回值序列化为字符串
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public interface ArgumentSerializer {
     

@@ -3,8 +3,8 @@ package io.github.nemoob.atlas.log.exception;
 /**
  * SpEL表达式评估异常
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class ExpressionEvaluationException extends LogException {
     

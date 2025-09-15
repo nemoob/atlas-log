@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
  * 多个日志注解的容器
  * 当在同一个方法或类上使用多个@Log注解时，会自动使用此容器
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

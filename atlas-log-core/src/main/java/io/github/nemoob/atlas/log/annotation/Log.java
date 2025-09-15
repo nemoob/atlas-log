@@ -20,8 +20,8 @@ import java.lang.annotation.Target;
  * - #{executionTime} - 方法执行时间（毫秒）
  * - #{@beanName} - Spring容器中的Bean
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -83,14 +83,14 @@ public @interface Log {
      * 
      * @return true-记录参数，false-不记录参数
      */
-    boolean logArgs() default true;
+    boolean logArgs() default false;
     
     /**
      * 是否记录返回值
      * 
      * @return true-记录返回值，false-不记录返回值
      */
-    boolean logResult() default true;
+    boolean logResult() default false;
     
     /**
      * 是否记录执行时间
@@ -164,4 +164,32 @@ public @interface Log {
      * @return 异常处理器数组
      */
     ExceptionHandler[] exceptionHandlers() default {};
+    
+    /**
+     * 参数格式化器名称
+     * 指定用于格式化方法参数的格式化器
+     * 
+     * 示例：
+     * - "json" - 使用 JSON 格式化器
+     * - "key-value" - 使用 key=value 格式化器
+     * - "custom" - 使用自定义格式化器
+     * - "" - 使用全局配置的格式化器（默认）
+     * 
+     * @return 参数格式化器名称
+     */
+    String argumentFormatter() default "";
+    
+    /**
+     * 返回值格式化器名称
+     * 指定用于格式化方法返回值的格式化器
+     * 
+     * 示例：
+     * - "json" - 使用 JSON 格式化器
+     * - "key-value" - 使用 key=value 格式化器
+     * - "custom" - 使用自定义格式化器
+     * - "" - 使用全局配置的格式化器（默认）
+     * 
+     * @return 返回值格式化器名称
+     */
+    String resultFormatter() default "";
 }

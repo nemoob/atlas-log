@@ -6,8 +6,8 @@ import io.github.nemoob.atlas.log.context.LogContext;
  * 表达式处理策略接口
  * 定义了不同类型表达式的处理方式
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public interface ExpressionProcessor {
     

@@ -25,8 +25,8 @@ import java.util.concurrent.Future;
  * 用户控制器
  * 演示Web环境下的Atlas Log功能
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @RestController
 @RequestMapping("/api/users")

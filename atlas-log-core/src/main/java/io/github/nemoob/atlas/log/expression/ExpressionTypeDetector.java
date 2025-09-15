@@ -6,8 +6,8 @@ import java.util.regex.Pattern;
  * 表达式类型检测器
  * 负责检测表达式字符串的类型，以便选择合适的处理策略
  * 
- * @author Atlas Team  
- * @since 1.0.0
+ * @author nemoob  
+ * @since 0.2.0
  */
 public class ExpressionTypeDetector {
     

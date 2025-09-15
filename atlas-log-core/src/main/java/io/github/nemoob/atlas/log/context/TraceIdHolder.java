@@ -6,8 +6,8 @@ import java.util.UUID;
  * 链路追踪ID持有者
  * 使用InheritableThreadLocal在当前线程及其子线程中存储和传递TraceId
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 public class TraceIdHolder {
     

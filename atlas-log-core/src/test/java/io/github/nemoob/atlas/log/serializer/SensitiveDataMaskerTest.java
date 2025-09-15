@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * 敏感数据脱敏器测试
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 class SensitiveDataMaskerTest {
     

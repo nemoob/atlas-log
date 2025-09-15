@@ -2,6 +2,8 @@
 
 本指南将详细介绍 Atlas Log 的所有配置选项，帮助您根据需要定制日志行为。
 
+> **🆕 0.2.0 版本更新**：修复了注解配置中 HTTP 日志配置不生效的问题，现在 `@AtlasLogHttpLog` 注解配置完全可用！详见 [0.2.0 版本教程](TUTORIAL_V0.2.0.md)。
+
 ## 📖 目录
 
 - [配置方式概览](#配置方式概览)
@@ -240,6 +242,17 @@ atlas:
 ```yaml
 atlas:
   log:
+    # === HTTP 日志配置 (0.2.0+ 完全支持) ===
+    http-log:
+      url-format: "{method} {uri}{queryString}"  # URL格式化模式
+      include-query-string: true                   # 是否包含查询字符串
+      log-full-parameters: true                    # 是否记录完整请求参数
+      include-headers: false                       # 是否包含请求头
+      exclude-headers:                             # 排除的请求头
+        - "authorization"
+        - "cookie"
+        - "x-auth-token"
+    
     web:
       enabled: true
       
@@ -269,34 +282,106 @@ atlas:
         - "*.ico"
 ```
 
+#### HTTP 日志 URL 格式化 (0.2.0+ 新功能)
+
+**支持的占位符：**
+
+| 占位符 | 说明 | 示例值 |
+|--------|------|--------|
+| `{method}` | HTTP 方法 | `GET`, `POST`, `PUT` |
+| `{uri}` | 请求 URI | `/api/users/123` |
+| `{queryString}` | 查询字符串 | `?name=john&age=25` |
+| `{remoteAddr}` | 客户端 IP | `192.168.1.100` |
+
+**配置示例：**
+
+```yaml
+# 1. 默认格式
+atlas:
+  log:
+    http-log:
+      url-format: "{method} {uri}"
+# 输出: GET /api/users
+
+# 2. 包含查询参数
+atlas:
+  log:
+    http-log:
+      url-format: "{method} {uri}{queryString}"
+      include-query-string: true
+# 输出: GET /api/users?id=123&name=john
+
+# 3. 包含客户端IP
+atlas:
+  log:
+    http-log:
+      url-format: "[{remoteAddr}] {method} {uri}"
+# 输出: [192.168.1.100] GET /api/users
+
+# 4. 完整格式
+atlas:
+  log:
+    http-log:
+      url-format: "{remoteAddr} -> {method} {uri}{queryString}"
+      include-query-string: true
+# 输出: 192.168.1.100 -> GET /api/users?id=123
+
+# 5. 只显示查询参数
+atlas:
+  log:
+    http-log:
+      url-format: "{queryString}"
+      include-query-string: true
+# 输出: ?id=123&name=john
+```
+
 ## 🏗️ 注解配置详解
 
 ### @EnableAtlasLog 主配置
 
 ```java
 @SpringBootApplication
-@EnableAtlasLog({
-    @AtlasLogTrace(
+@EnableAtlasLog(
+    enabled = true,
+    defaultLevel = "INFO",
+    
+    // HTTP 日志配置 (0.2.0+ 完全支持)
+    httpLog = @AtlasLogHttpLog(
+        urlFormat = "{remoteAddr} -> {method} {uri}{queryString}",
+        includeQueryString = true,
+        logFullParameters = true,
+        includeHeaders = false,
+        excludeHeaders = {"authorization", "cookie"}
+    ),
+    
+    // 链路追踪配置
+    trace = @AtlasLogTrace(
         enabled = true,
         headerName = "X-Request-Id",
         generator = "uuid"
     ),
-    @AtlasLogSensitive(
+    
+    // 敏感数据配置
+    sensitive = @AtlasLogSensitive(
         enabled = true,
         customFields = {"bankCard", "idCard", "socialSecurity"},
         maskChar = "*",
         preserveLength = 3
     ),
-    @AtlasLogPerformance(
+    
+    // 性能监控配置
+    performance = @AtlasLogPerformance(
         enabled = true,
         slowThreshold = 2000,
         logSlowMethods = true
     ),
-    @AtlasLogCondition(
+    
+    // 条件配置
+    condition = @AtlasLogCondition(
         enabled = true,
         failSafe = true
     )
-})
+)
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -305,6 +390,47 @@ public class Application {
 ```
 
 ### 子配置注解详解
+
+#### @AtlasLogHttpLog - HTTP 日志配置 (0.2.0+ 新功能)
+
+```java
+@AtlasLogHttpLog(
+    urlFormat = "{method} {uri}{queryString}",  // URL格式化模式
+    includeQueryString = true,                   // 是否包含查询字符串
+    logFullParameters = true,                    // 是否记录完整请求参数
+    includeHeaders = false,                      // 是否包含请求头
+    excludeHeaders = {"authorization", "cookie"} // 排除的请求头
+)
+```
+
+**urlFormat 占位符说明：**
+- `{method}`: HTTP 方法 (GET, POST, PUT, DELETE 等)
+- `{uri}`: 请求 URI 路径
+- `{queryString}`: 查询字符串 (需要 includeQueryString = true)
+- `{remoteAddr}`: 客户端 IP 地址
+
+**常用配置示例：**
+```java
+// 1. 生产环境配置（简洁）
+@AtlasLogHttpLog(
+    urlFormat = "{method} {uri}",
+    includeQueryString = false,
+    logFullParameters = false
+)
+
+// 2. 开发环境配置（详细）
+@AtlasLogHttpLog(
+    urlFormat = "{remoteAddr} -> {method} {uri}{queryString}",
+    includeQueryString = true,
+    logFullParameters = true
+)
+
+// 3. 只记录查询参数
+@AtlasLogHttpLog(
+    urlFormat = "{queryString}",
+    includeQueryString = true
+)
+```
 
 #### @AtlasLogTrace - 链路追踪配置
 

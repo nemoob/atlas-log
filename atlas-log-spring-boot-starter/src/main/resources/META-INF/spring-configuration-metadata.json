@@ -132,8 +132,32 @@
     {
       "name": "atlas.log.sensitive.mask-value",
       "type": "java.lang.String",
-      "description": "脱敏标记",
+      "description": "敏感数据脱敏替换值",
       "defaultValue": "***"
+    },
+    {
+      "name": "atlas.log.argument-format.type",
+      "type": "io.github.nemoob.atlas.log.config.LogConfigProperties$ArgumentFormatType",
+      "description": "参数输出格式类型：JSON（默认）或 KEY_VALUE",
+      "defaultValue": "JSON"
+    },
+    {
+      "name": "atlas.log.argument-format.separator",
+      "type": "java.lang.String",
+      "description": "key=value 格式的分隔符",
+      "defaultValue": "&"
+    },
+    {
+      "name": "atlas.log.argument-format.key-value-separator",
+      "type": "java.lang.String",
+      "description": "key=value 格式的键值分隔符",
+      "defaultValue": "="
+    },
+    {
+      "name": "atlas.log.argument-format.include-parameter-index",
+      "type": "java.lang.Boolean",
+      "description": "是否包含参数索引作为键名",
+      "defaultValue": true
     }
   ]
 }

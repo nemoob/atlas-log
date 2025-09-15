@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
  * 3. 用求值结果替换原始模板中的占位符
  * 4. 避免将包含中文的整个字符串传递给SpEL解析器
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Slf4j
 public class TemplateProcessor implements ExpressionProcessor {

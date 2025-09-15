@@ -1,13 +1,17 @@
 package io.github.nemoob.atlas.log.aspect;
 
 import io.github.nemoob.atlas.log.annotation.ExceptionHandler;
+import io.github.nemoob.atlas.log.annotation.JsonPathCompare;
 import io.github.nemoob.atlas.log.annotation.Log;
 import io.github.nemoob.atlas.log.annotation.LogIgnore;
 import io.github.nemoob.atlas.log.annotation.Logs;
 import io.github.nemoob.atlas.log.context.LogContext;
 import io.github.nemoob.atlas.log.context.TraceIdHolder;
 import io.github.nemoob.atlas.log.expression.SpelExpressionEvaluator;
-import io.github.nemoob.atlas.log.serializer.JsonArgumentSerializer;
+import io.github.nemoob.atlas.log.processor.JsonPathCompareProcessor;
+import io.github.nemoob.atlas.log.serializer.ArgumentSerializer;
+import io.github.nemoob.atlas.log.serializer.ArgumentFormatterManager;
+import io.github.nemoob.atlas.log.serializer.DefaultFormatterContext;
 import io.github.nemoob.atlas.log.util.ReflectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,7 +20,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -29,35 +36,47 @@ import java.util.List;
  * 日志切面处理器
  * 拦截带有@Log注解的方法，实现自动日志记录
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Aspect
 @Component
 @Slf4j
-public class LogAspect {
+public class AtlasLogAspect {
     
     private final SpelExpressionEvaluator spelExpressionEvaluator;
-    private final JsonArgumentSerializer argumentSerializer;
+    private final ArgumentSerializer argumentSerializer;
+    private final JsonPathCompareProcessor jsonPathCompareProcessor;
+    private final ArgumentFormatterManager argumentFormatterManager;
     
-    public LogAspect(SpelExpressionEvaluator spelExpressionEvaluator,
-                     JsonArgumentSerializer argumentSerializer) {
+    public AtlasLogAspect(SpelExpressionEvaluator spelExpressionEvaluator,
+                          ArgumentSerializer argumentSerializer,
+                          JsonPathCompareProcessor jsonPathCompareProcessor,
+                          ArgumentFormatterManager argumentFormatterManager) {
         this.spelExpressionEvaluator = spelExpressionEvaluator;
         this.argumentSerializer = argumentSerializer;
+        this.jsonPathCompareProcessor = jsonPathCompareProcessor;
+        this.argumentFormatterManager = argumentFormatterManager;
     }
     
     /**
      * 环绕通知：拦截带有@Log注解的方法
      */
-    @Around("@annotation(io.github.nemoob.atlas.log.annotation.Log) || @annotation(io.github.nemoob.atlas.log.annotation.Logs)")
+    @Around("@annotation(io.github.nemoob.atlas.log.annotation.Log) || @annotation(io.github.nemoob.atlas.log.annotation.Logs) || @annotation(io.github.nemoob.atlas.log.annotation.JsonPathCompare)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         Object[] args = joinPoint.getArgs();
         
+        // 保存方法执行前的参数状态（用于 JsonPath 比较）
+        Object[] beforeArgs = null;
+        if (method.isAnnotationPresent(JsonPathCompare.class)) {
+            beforeArgs = deepCopyArgs(args);
+        }
+        
         // 获取所有Log注解
         List<Log> logAnnotations = getAllLogAnnotations(method);
-        if (logAnnotations.isEmpty()) {
+        if (logAnnotations.isEmpty() && !method.isAnnotationPresent(JsonPathCompare.class)) {
             return joinPoint.proceed();
         }
         
@@ -84,6 +103,11 @@ public class LogAspect {
             
             // 执行目标方法
             result = joinPoint.proceed();
+            
+            // 处理 JsonPath 比较
+            if (jsonPathCompareProcessor != null && method.isAnnotationPresent(JsonPathCompare.class)) {
+                jsonPathCompareProcessor.processJsonPathCompare(method, args, result, beforeArgs);
+            }
             
             return result;
             
@@ -124,7 +148,7 @@ public class LogAspect {
                 logAnnotation.enterMessage(), logContext);
             
             Logger logger = getLogger(method);
-            logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext));
+            logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext, method));
             
         } catch (Exception e) {
             log.warn("Failed to record enter log: {}", method.getName(), e);
@@ -146,7 +170,7 @@ public class LogAspect {
         try {
             String message = buildLogMessage(logAnnotation, logContext, false);
             Logger logger = getLogger(method);
-            logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext));
+            logWithLevel(logger, logAnnotation.level(), message, buildLogDetails(logAnnotation, logContext, method));
             
         } catch (Exception e) {
             log.warn("Failed to record exit log: {}", method.getName(), e);
@@ -190,7 +214,7 @@ public class LogAspect {
             }
             
             Logger logger = getLogger(method);
-            String logDetails = buildLogDetails(logAnnotation, logContext);
+            String logDetails = buildLogDetails(logAnnotation, logContext, method);
             
             if (logStackTrace) {
                 logWithLevel(logger, logLevel, message, logDetails, exception);
@@ -251,7 +275,7 @@ public class LogAspect {
     /**
      * 构建日志详细信息
      */
-    private String buildLogDetails(Log logAnnotation, LogContext logContext) {
+    private String buildLogDetails(Log logAnnotation, LogContext logContext, Method method) {
         StringBuilder details = new StringBuilder();
         
         // TraceId
@@ -268,7 +292,7 @@ public class LogAspect {
         if (logAnnotation.logArgs() && logContext.getArgs() != null) {
             try {
                 String argsStr = serializeArgs(logContext.getArgs(), logAnnotation, 
-                    getMethodParameters(logContext.getMethodSignature()));
+                    getMethodParameters(logContext.getMethodSignature()), method);
                 details.append("Args: ").append(argsStr).append(" | ");
             } catch (Exception e) {
                 details.append("Args: [序列化失败] | ");
@@ -278,7 +302,7 @@ public class LogAspect {
         // 返回值
         if (logAnnotation.logResult() && logContext.getResult() != null) {
             try {
-                String resultStr = argumentSerializer.serializeResult(logContext.getResult(), logAnnotation);
+                String resultStr = serializeResult(logContext.getResult(), logAnnotation, method);
                 details.append("Result: ").append(resultStr).append(" | ");
             } catch (Exception e) {
                 details.append("Result: [序列化失败] | ");
@@ -305,14 +329,40 @@ public class LogAspect {
     }
     
     /**
-     * 序列化参数（考虑@LogIgnore注解）
+     * 序列化参数
      */
-    private String serializeArgs(Object[] args, Log logAnnotation, Parameter[] parameters) {
-        if (argumentSerializer instanceof JsonArgumentSerializer) {
-            JsonArgumentSerializer jsonSerializer = (JsonArgumentSerializer) argumentSerializer;
-            return jsonSerializer.serializeArgsWithParameterInfo(args, logAnnotation, parameters);
+    private String serializeArgs(Object[] args, Log logAnnotation, Parameter[] parameters, Method method) {
+        // 检查注解是否指定了自定义格式化器
+        String formatterName = logAnnotation.argumentFormatter();
+        if (formatterName != null && !formatterName.trim().isEmpty()) {
+            // 使用注解指定的格式化器
+            String methodName = method != null ? method.getName() : "unknown";
+            String className = method != null ? method.getDeclaringClass().getSimpleName() : "unknown";
+            DefaultFormatterContext context = new DefaultFormatterContext(
+                methodName, className, logAnnotation.maxArgLength());
+            
+            log.debug("Using custom formatter '{}' for method {}.{}", formatterName, className, methodName);
+            return argumentFormatterManager.formatArguments(formatterName, args, context);
         } else {
+            // 使用默认的序列化器
             return argumentSerializer.serializeArgs(args, logAnnotation);
+        }
+    }
+    
+    /**
+     * 序列化返回值
+     */
+    private String serializeResult(Object result, Log logAnnotation, Method method) {
+        // 检查注解是否指定了自定义格式化器
+        String formatterName = logAnnotation.resultFormatter();
+        if (formatterName != null && !formatterName.trim().isEmpty()) {
+            // 使用注解指定的格式化器
+            DefaultFormatterContext context = new DefaultFormatterContext(
+                method.getName(), method.getDeclaringClass().getSimpleName(), logAnnotation.maxResultLength());
+            return argumentFormatterManager.formatResult(formatterName, result, context);
+        } else {
+            // 使用默认的序列化器
+            return argumentSerializer.serializeResult(result, logAnnotation);
         }
     }
     
@@ -476,5 +526,20 @@ public class LogAspect {
                 logger.error(fullMessage, exception);
                 break;
         }
+    }
+    
+    /**
+     * 深拷贝参数数组（简单实现）
+     */
+    private Object[] deepCopyArgs(Object[] args) {
+        if (args == null) {
+            return null;
+        }
+        
+        Object[] copy = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            copy[i] = args[i]; // 简单拷贝，实际使用中可能需要深拷贝
+        }
+        return copy;
     }
 }

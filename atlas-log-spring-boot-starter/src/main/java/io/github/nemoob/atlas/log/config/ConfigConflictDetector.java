@@ -15,8 +15,8 @@ import java.util.Objects;
  * 并记录冲突信息以帮助开发者了解配置覆盖情况。
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Component
 public class ConfigConflictDetector {

@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 反射工具类
  * 提供常用的反射操作方法
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Slf4j
 public class ReflectionUtils {

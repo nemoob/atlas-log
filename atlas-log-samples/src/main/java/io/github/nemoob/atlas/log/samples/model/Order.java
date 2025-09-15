@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 /**
  * 订单实体（纯POJO类）
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Data
 @Accessors(chain = true)

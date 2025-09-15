@@ -21,8 +21,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *   <li>敏感数据脱敏：启用</li>
  * </ul>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @SpringBootApplication
 @EnableAtlasLog  // 使用默认配置

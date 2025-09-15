@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
  * 负责验证注解配置的合法性，确保配置参数符合要求。
  * </p>
  * 
- * @author Atlas Team
- * @since 1.0.0
+ * @author nemoob
+ * @since 0.2.0
  */
 @Component
 public class AnnotationConfigValidator {
