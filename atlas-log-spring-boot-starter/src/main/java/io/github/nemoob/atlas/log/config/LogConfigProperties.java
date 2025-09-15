@@ -138,13 +138,6 @@ public class LogConfigProperties {
     }
     
     /**
-     * 检查配置是否为空（用于合并判断）
-     */
-    public boolean isEmpty() {
-        return enabledTags.isEmpty() && enabledGroups.isEmpty() && exclusions.isEmpty();
-    }
-    
-    /**
      * 链路追踪配置
      */
     @Data

@@ -69,17 +69,6 @@ public class ReflectionUtils {
     }
     
     /**
-     * 检查参数是否有指定注解
-     * 
-     * @param parameter 参数对象
-     * @param annotationClass 注解类
-     * @return 是否存在注解
-     */
-    public static boolean hasAnnotation(Parameter parameter, Class<? extends Annotation> annotationClass) {
-        return parameter.isAnnotationPresent(annotationClass);
-    }
-    
-    /**
      * 获取参数的指定注解
      * 
      * @param parameter 参数对象
@@ -91,17 +80,6 @@ public class ReflectionUtils {
     }
     
     /**
-     * 检查方法是否有指定注解
-     * 
-     * @param method 方法对象
-     * @param annotationClass 注解类
-     * @return 是否存在注解
-     */
-    public static boolean hasAnnotation(Method method, Class<? extends Annotation> annotationClass) {
-        return method.isAnnotationPresent(annotationClass);
-    }
-    
-    /**
      * 获取方法的指定注解
      * 
      * @param method 方法对象
@@ -110,17 +88,6 @@ public class ReflectionUtils {
      */
     public static <T extends Annotation> T getAnnotation(Method method, Class<T> annotationClass) {
         return method.getAnnotation(annotationClass);
-    }
-    
-    /**
-     * 检查类是否有指定注解
-     * 
-     * @param clazz 类对象
-     * @param annotationClass 注解类
-     * @return 是否存在注解
-     */
-    public static boolean hasAnnotation(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        return clazz.isAnnotationPresent(annotationClass);
     }
     
     /**
